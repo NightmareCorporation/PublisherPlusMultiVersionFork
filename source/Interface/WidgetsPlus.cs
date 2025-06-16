@@ -9,10 +9,13 @@ namespace PublisherPlus.Interface
 
 		public static bool ButtonText(Rect rect, string label, bool enabled = true)
 		{
-			var previousColor = GUI.color;
+			Color previousColor = GUI.color;
 
-			if(!enabled) { GUI.color = DisabledColor; }
-			var result = Widgets.ButtonText(rect, label, active: enabled);
+			if(!enabled)
+			{
+				GUI.color = DisabledColor;
+			}
+			bool result = Widgets.ButtonText(rect, label, active: enabled);
 
 			GUI.color = previousColor;
 			return result;

@@ -1,7 +1,7 @@
 ﻿using System.Reflection;
 using PublisherPlus;
 
-[assembly: AssemblyTitle(Mod.Name)]
+[assembly: AssemblyTitle(Startup.Name)]
 [assembly: AssemblyProduct("RimWorld Mods by Jaxe")]
 [assembly: AssemblyCopyright("© Jaxe")]
-[assembly: AssemblyVersion(Mod.Version)]
+[assembly: AssemblyVersion(Startup.Version)]

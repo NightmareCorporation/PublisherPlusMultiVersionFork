@@ -5,7 +5,7 @@ using Verse;
 namespace PublisherPlus
 {
 	[StaticConstructorOnStartup]
-	internal static class Mod
+	public static class Startup
 	{
 		public const string Id = "PublisherPlus";
 		public const string Name = Id;
@@ -13,9 +13,9 @@ namespace PublisherPlus
 
 		public static bool ExperimentalMode { get; set; }
 
-		static Mod()
+		static Startup()
 		{
-			var harmony = new Harmony(Id);
+			Harmony harmony = new Harmony(Id);
 			harmony.PatchAll();
 
 			FluffyModManager.AddCompatibility(harmony);

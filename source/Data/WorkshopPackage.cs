@@ -46,7 +46,10 @@ namespace PublisherPlus.Data
 			get => _previewFile.FullName;
 			set
 			{
-				if(_previewFile?.FullName == value) { return; }
+				if(_previewFile?.FullName == value)
+				{
+					return;
+				}
 				_previewFile = new FileInfo(value);
 			}
 		}
@@ -54,7 +57,9 @@ namespace PublisherPlus.Data
 		public bool IsNewCreation => _id == PublishedFileId_t.Invalid;
 
 		public DirectoryInfo SourceDirectory { get; private set; }
-		public IEnumerable<FileSystemInfo> AllContent => _items.OrderByDescending(item => item.Value).Select(item => item.Key);
+		public IEnumerable<FileSystemInfo> AllContent => _items
+			.OrderByDescending(item => item.Value)
+			.Select(item => item.Key);
 
 		private readonly DirectoryInfo _uploadDirectory;
 
@@ -69,7 +74,10 @@ namespace PublisherPlus.Data
 			GetConfig();
 
 			_uploadDirectory = TempDirectory.CreateSubdirectory(SourceDirectory.Name);
-			if(_uploadDirectory.ExistsNow()) { _uploadDirectory.Delete(true); }
+			if(_uploadDirectory.ExistsNow())
+			{
+				_uploadDirectory.Delete(true);
+			}
 			_uploadDirectory.Create();
 		}
 
@@ -88,9 +96,12 @@ namespace PublisherPlus.Data
 		public void SetIncluded(FileSystemInfo item, bool value)
 		{
 			_items[item] = value;
-			foreach(var key in _items.Keys.ToArray())
+			foreach(FileSystemInfo key in _items.Keys.ToArray())
 			{
-				if(key.FullName.StartsWith(item.FullName)) { _items[key] = value; }
+				if(key.FullName.StartsWith(item.FullName))
+				{
+					_items[key] = value;
+				}
 			}
 		}
 
@@ -104,16 +115,16 @@ namespace PublisherPlus.Data
 		/// </summary>
 		private void GetAllContent()
 		{
-			var contents = SourceDirectory.GetFileSystemInfos("*", SearchOption.AllDirectories)
-					  .OrderBy(item => item.FullName)
-					  .Where(item => item.Name != ConfigFileName);
+			IEnumerable<FileSystemInfo> contents = SourceDirectory.GetFileSystemInfos("*", SearchOption.AllDirectories)
+				.OrderBy(item => item.FullName)
+				.Where(item => item.Name != ConfigFileName);
 
 			// apply .gitignore
 			string ignoreFile = Path.Combine(SourceDirectory.FullName, GitIgnorePath);
 
 			if(PublisherPlusSettings.useGitIgnore && File.Exists(ignoreFile))
 			{
-				var parse = new GitignoreParser(ignoreFile, Encoding.UTF8);
+				GitignoreParser parse = new GitignoreParser(ignoreFile, Encoding.UTF8);
 
 				contents = contents.Where(dir => parse.Accepts(separator + GetRelativePath(dir)));
 			}
@@ -121,7 +132,7 @@ namespace PublisherPlus.Data
 
 			_items.Clear();
 
-			foreach(var path in contents)
+			foreach(FileSystemInfo path in contents)
 			{
 				_items.Add(path, true);
 			}
@@ -132,34 +143,54 @@ namespace PublisherPlus.Data
 		/// </summary>
 		private void GetConfig()
 		{
-			var configFile = Path.Combine(SourceDirectory.FullName, ConfigFileName);
-			if(!File.Exists(configFile)) { return; }
+			string configFile = Path.Combine(SourceDirectory.FullName, ConfigFileName);
+			if(!File.Exists(configFile))
+			{
+				return;
+			}
 
-			var xml = XDocument.Load(configFile).Root;
-			if(xml == null) { return; }
+			XElement xml = XDocument.Load(configFile).Root;
+			if(xml == null)
+			{
+				return;
+			}
 
-			var ns = xml.Name.Namespace;
+			XNamespace ns = xml.Name.Namespace;
 
-			var title = xml.Element(ns + "Title")?.Value;
-			if(!title.NullOrEmpty()) { Title = title; }
+			string title = xml.Element(ns + "Title")?.Value;
+			if(!title.NullOrEmpty())
+			{
+				Title = title;
+			}
 
-			var tags = xml.Element(ns + "Tags")?.Elements().Select(element => element.Value).ToList();
-			if(Mod.ExperimentalMode && tags != null && tags.Count > 0) { Tags = tags; }
+			List<string> tags = xml.Element(ns + "Tags")?.Elements()
+				.Select(element => element.Value)
+				.ToList();
+			if(Startup.ExperimentalMode && tags != null && tags.Count > 0)
+			{
+				Tags = tags;
+			}
 
-			var preview = xml.Element(ns + "Preview")?.Value;
-			if(!preview.NullOrEmpty()) { Preview = preview; }
+			string preview = xml.Element(ns + "Preview")?.Value;
+			if(!preview.NullOrEmpty())
+			{
+				Preview = preview;
+			}
 
-			var exclusions = xml.Element(ns + "Excluded")?.Elements()
+			IEnumerable<string> exclusions = xml.Element(ns + "Excluded")?.Elements()
 				.Select(element => element.Value)
 				.Where(path => !path.NullOrEmpty())
 				.Select(path => Path.Combine(SourceDirectory.FullName, path));
 
-			if(exclusions == null) { return; }
+			if(exclusions == null)
+			{
+				return;
+			}
 
 			// find _items that match the loaded exclusion filters so that they can be exculded again
-			var excludedPaths = _items.Keys.Where(item => exclusions.Any(exclude => item.FullName.StartsWith(exclude, StringComparison.OrdinalIgnoreCase)));
+			IEnumerable<FileSystemInfo> excludedPaths = _items.Keys.Where(item => exclusions.Any(exclude => item.FullName.StartsWith(exclude, StringComparison.OrdinalIgnoreCase)));
 
-			foreach(var path in excludedPaths)
+			foreach(FileSystemInfo path in excludedPaths)
 			{
 				_items[path] = false;
 			}
@@ -167,17 +198,22 @@ namespace PublisherPlus.Data
 
 		public bool HasContent() => _items.Any(item => item.Value);
 
-		private IEnumerable<FileSystemInfo> GetExcluded() => _items.Where(item => !item.Value).Select(item => item.Key);
+		private IEnumerable<FileSystemInfo> GetExcluded() => _items
+			.Where(item => !item.Value)
+			.Select(item => item.Key);
 
 		/// <summary>
 		/// Simplifies <see cref="GetExcluded"/> to remove unncessary branches
 		/// </summary>
 		private IEnumerable<string> GetExcludedPaths()
 		{
-			var list = new List<string>();
-			foreach(var path in GetExcluded().Select(GetRelativePath).OrderBy(item => item))
+			List<string> list = new List<string>();
+			foreach(string path in GetExcluded().Select(GetRelativePath).OrderBy(item => item))
 			{
-				if(list.Any(item => path.StartsWith(item))) { continue; }
+				if(list.Any(item => path.StartsWith(item)))
+				{
+					continue;
+				}
 				list.Add(path);
 			}
 
@@ -186,14 +222,23 @@ namespace PublisherPlus.Data
 
 		public void SaveConfig()
 		{
-			var configFile = Path.Combine(SourceDirectory.FullName, ConfigFileName);
+			string configFile = Path.Combine(SourceDirectory.FullName, ConfigFileName);
 
-			var xml = new XDocument();
-			var root = new XElement("Configuration");
+			XDocument xml = new XDocument();
+			XElement root = new XElement("Configuration");
 			xml.Add(root);
-			if(Title != _hook.Name) { root.Add(new XElement("Title", Title)); }
-			if(Mod.ExperimentalMode && !Tags.SequenceEqual(_hook.Tags)) { root.Add(new XElement("Tags", from tag in Tags select new XElement("tag", tag))); }
-			if(Preview != _hook.PreviewImagePath && PreviewExists) { root.Add(new XElement("Preview", Preview)); }
+			if(Title != _hook.Name)
+			{
+				root.Add(new XElement("Title", Title));
+			}
+			if(Startup.ExperimentalMode && !Tags.SequenceEqual(_hook.Tags))
+			{
+				root.Add(new XElement("Tags", from tag in Tags select new XElement("tag", tag)));
+			}
+			if(Preview != _hook.PreviewImagePath && PreviewExists)
+			{
+				root.Add(new XElement("Preview", Preview));
+			}
 			root.Add(new XElement("Excluded", from item in GetExcludedPaths() select new XElement("exclude", item)));
 
 			xml.Save(configFile);
@@ -207,26 +252,39 @@ namespace PublisherPlus.Data
 
 		private void Prepare()
 		{
-			if(!PreviewExists) { Preview = _hook.PreviewImagePath; }
-
-			foreach(var item in _items.Where(item => item.Value))
+			if(!PreviewExists)
 			{
-				var path = Path.Combine(_uploadDirectory.FullName, GetRelativePath(item.Key));
+				Preview = _hook.PreviewImagePath;
+			}
 
-				if(item.Key is DirectoryInfo) { new DirectoryInfo(path).Create(); }
-				if(!(item.Key is FileInfo original)) { continue; }
+			foreach(KeyValuePair<FileSystemInfo, bool> item in _items.Where(item => item.Value))
+			{
+				string path = Path.Combine(_uploadDirectory.FullName, GetRelativePath(item.Key));
+
+				if(item.Key is DirectoryInfo)
+				{
+					new DirectoryInfo(path).Create();
+				}
+
+				if(!(item.Key is FileInfo original))
+				{
+					continue;
+				}
 
 				try
 				{
-					var destination = new FileInfo(path);
-					if(destination.Directory == null) { throw new Mod.Exception("Destination directory is null"); }
+					FileInfo destination = new FileInfo(path);
+					if(destination.Directory == null)
+					{
+						throw new Startup.Exception("Destination directory is null");
+					}
 					destination.Directory.Create();
 					original.CopyTo(destination.FullName);
 				}
 				catch(Exception e)
 				{
-					var message = $"Skipping package file '{original.FullName}' due to error: {e.Message}";
-					Mod.Warning(message);
+					string message = $"Skipping package file '{original.FullName}' due to error: {e.Message}";
+					Startup.Warning(message);
 				}
 			}
 		}
@@ -235,7 +293,7 @@ namespace PublisherPlus.Data
 		{
 			if(_current == this)
 			{
-				Mod.Error("This workshop package is still being uploaded");
+				Startup.Error("This workshop package is still being uploaded");
 				return;
 			}
 			_current = this;
@@ -247,9 +305,12 @@ namespace PublisherPlus.Data
 
 		public static void OnUploaded()
 		{
-			if(_current == null) { return; }
+			if(_current == null)
+			{
+				return;
+			}
 
-			Mod.Log($"Finished uploading '{_current.Title}'");
+			Startup.Log($"Finished uploading '{_current.Title}'");
 
 			_current = null;
 			TempDirectory.Delete(true);
@@ -266,10 +327,13 @@ namespace PublisherPlus.Data
 		{
 			_id = pfid;
 
-			var file = new FileInfo(Path.Combine(SourceDirectory.FullName, PublishedFileIdFilePath));
+			FileInfo file = new FileInfo(Path.Combine(SourceDirectory.FullName, PublishedFileIdFilePath));
 			_hook.PublishedFileId = pfid;
 
-			if(_items.Keys.FirstOrDefault(item => item.FullName == file.FullName) != null) { return; }
+			if(_items.Keys.FirstOrDefault(item => item.FullName == file.FullName) != null)
+			{
+				return;
+			}
 
 			_items.Add(file, true);
 		}
