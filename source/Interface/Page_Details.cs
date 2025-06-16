@@ -8,7 +8,7 @@ namespace PublisherPlus.Interface
 	{
 		public Page_Details(WorkshopPackage package) : base(package) { }
 
-		public override string Title => throw new System.NotImplementedException();
+		public override string Title => Language.Get("Title.Details");
 
 		public override void DoWindowContents(Rect inRect)
 		{
@@ -16,11 +16,11 @@ namespace PublisherPlus.Interface
 			list.Begin(inRect);
 			list.Gap();
 
-			list.Label(Lang.Get("FileId").Bold());
+			list.Label(Language.Get("FileId").Bold());
 			list.Label(package.Id.Italic());
 			list.GapLine();
 
-			list.Label(Lang.Get("Title").Bold());
+			list.Label(Language.Get("Title").Bold());
 			package.Title = list.TextEntry(package.Title);
 			const string experimentalMode = "*#exp#"; // Experimental Mode: Can load tags in xml
 			if(package.Title.EndsWith(experimentalMode))
@@ -31,7 +31,7 @@ namespace PublisherPlus.Interface
 			}
 			list.GapLine();
 
-			list.Label(Lang.Get("Description").Bold() + (package.IsNewCreation ? null : Lang.Get("DescriptionLocked")));
+			list.Label(Language.Get("Description").Bold() + (package.IsNewCreation ? null : Language.Get("DescriptionLocked")));
 			string description = list.TextEntry(package.Description, 6);
 			if(package.IsNewCreation)
 			{
@@ -39,11 +39,11 @@ namespace PublisherPlus.Interface
 			}
 			list.GapLine();
 
-			list.Label(Lang.Get("Tags").Bold());
+			list.Label(Language.Get("Tags").Bold());
 			list.Label(package.Tags.ToCommaList().Italic());
 			list.GapLine();
 
-			list.Label(Lang.Get("PreviewFile").Bold() + (package.PreviewExists ? null : Lang.Get("PreviewNotFound").Italic()));
+			list.Label(Language.Get("PreviewFile").Bold() + (package.PreviewExists ? null : Language.Get("PreviewNotFound").Italic()));
 			package.Preview = list.TextEntry(package.Preview);
 
 			list.End();

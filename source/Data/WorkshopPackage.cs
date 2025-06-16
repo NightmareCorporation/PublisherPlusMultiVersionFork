@@ -30,10 +30,10 @@ namespace PublisherPlus.Data
 		private static WorkshopPackage _current;
 
 		private readonly WorkshopItemHook _hook;
-		private readonly Dictionary<FileSystemInfo, bool> _items = new Dictionary<FileSystemInfo, bool>();
+		private readonly Dictionary<FileSystemInfo, bool> uploadableItems = new Dictionary<FileSystemInfo, bool>();
 
 		private PublishedFileId_t _id;
-		public string Id => _id == PublishedFileId_t.Invalid ? Lang.Get("NewFileId") : _id.ToString();
+		public string Id => _id == PublishedFileId_t.Invalid ? Language.Get("NewFileId") : _id.ToString();
 
 		public string Title { get; set; }
 		public string Description { get; set; }
@@ -57,11 +57,12 @@ namespace PublisherPlus.Data
 		public bool IsNewCreation => _id == PublishedFileId_t.Invalid;
 
 		public DirectoryInfo SourceDirectory { get; private set; }
-		public IEnumerable<FileSystemInfo> AllContent => _items
+		public IEnumerable<FileSystemInfo> AllContent => uploadableItems
 			.OrderByDescending(item => item.Value)
 			.Select(item => item.Key);
 
 		private readonly DirectoryInfo _uploadDirectory;
+		public bool useGitIgnore = false;
 
 		public WorkshopPackage(WorkshopItemHook hook)
 		{
@@ -91,16 +92,16 @@ namespace PublisherPlus.Data
 			SourceDirectory = new DirectoryInfo(_hook.Directory.FullName);
 		}
 
-		public bool IsIncluded(FileSystemInfo item) => !_items.ContainsKey(item) || _items[item];
+		public bool IsIncluded(FileSystemInfo item) => !uploadableItems.ContainsKey(item) || uploadableItems[item];
 
 		public void SetIncluded(FileSystemInfo item, bool value)
 		{
-			_items[item] = value;
-			foreach(FileSystemInfo key in _items.Keys.ToArray())
+			uploadableItems[item] = value;
+			foreach(FileSystemInfo key in uploadableItems.Keys.ToArray())
 			{
 				if(key.FullName.StartsWith(item.FullName))
 				{
-					_items[key] = value;
+					uploadableItems[key] = value;
 				}
 			}
 		}
@@ -111,7 +112,7 @@ namespace PublisherPlus.Data
 		public string GetRelativePath(FileSystemInfo item) => item.FullName.Substring(SourceDirectory.FullName.Length + 1) + (item.IsDirectory() ? separator : "");
 
 		/// <summary>
-		/// Sets the <see cref="_items"/> dictionary to all files and directories in <see cref="SourceDirectory"/> (excluding <see cref="ConfigFileName"/>)
+		/// Sets the <see cref="uploadableItems"/> dictionary to all files and directories in <see cref="SourceDirectory"/> (excluding <see cref="ConfigFileName"/>)
 		/// </summary>
 		private void GetAllContent()
 		{
@@ -122,7 +123,7 @@ namespace PublisherPlus.Data
 			// apply .gitignore
 			string ignoreFile = Path.Combine(SourceDirectory.FullName, GitIgnorePath);
 
-			if(PublisherPlusSettings.useGitIgnore && File.Exists(ignoreFile))
+			if(useGitIgnore && File.Exists(ignoreFile))
 			{
 				GitignoreParser parse = new GitignoreParser(ignoreFile, Encoding.UTF8);
 
@@ -130,11 +131,11 @@ namespace PublisherPlus.Data
 			}
 
 
-			_items.Clear();
+			uploadableItems.Clear();
 
 			foreach(FileSystemInfo path in contents)
 			{
-				_items.Add(path, true);
+				uploadableItems.Add(path, true);
 			}
 		}
 
@@ -188,19 +189,19 @@ namespace PublisherPlus.Data
 			}
 
 			// find _items that match the loaded exclusion filters so that they can be exculded again
-			IEnumerable<FileSystemInfo> excludedPaths = _items.Keys
+			IEnumerable<FileSystemInfo> excludedPaths = uploadableItems.Keys
 				.ToList()
 				.Where(item => exclusions.Any(exclude => item.FullName.StartsWith(exclude, StringComparison.OrdinalIgnoreCase)));
 
 			foreach(FileSystemInfo path in excludedPaths)
 			{
-				_items[path] = false;
+				uploadableItems[path] = false;
 			}
 		}
 
-		public bool HasContent() => _items.Any(item => item.Value);
+		public bool HasContent() => uploadableItems.Any(item => item.Value);
 
-		private IEnumerable<FileSystemInfo> GetExcluded() => _items
+		private IEnumerable<FileSystemInfo> GetExcluded() => uploadableItems
 			.Where(item => !item.Value)
 			.Select(item => item.Key);
 
@@ -259,7 +260,7 @@ namespace PublisherPlus.Data
 				Preview = _hook.PreviewImagePath;
 			}
 
-			foreach(KeyValuePair<FileSystemInfo, bool> item in _items.Where(item => item.Value))
+			foreach(KeyValuePair<FileSystemInfo, bool> item in uploadableItems.Where(item => item.Value))
 			{
 				string path = Path.Combine(_uploadDirectory.FullName, GetRelativePath(item.Key));
 
@@ -318,33 +319,36 @@ namespace PublisherPlus.Data
 			TempDirectory.Delete(true);
 		}
 
+		#region IWorkshopUploadable
+		public string GetWorkshopName() => Title;
+		public string GetWorkshopDescription() => Description;
+		public IList<string> GetWorkshopTags() => Tags;
 		public bool CanToUploadToWorkshop() => true;
-
-		public void PrepareForWorkshopUpload()
-		{ }
-
 		public PublishedFileId_t GetPublishedFileId() => _id;
-
 		public void SetPublishedFileId(PublishedFileId_t pfid)
 		{
 			_id = pfid;
+			TrackPublishedIdFile();
+		}
+		public WorkshopItemHook GetWorkshopItemHook() => new WorkshopItemHook(this);
+		public string GetWorkshopPreviewImagePath() => Preview;
+		public DirectoryInfo GetWorkshopUploadDirectory() => _uploadDirectory;
+		public void PrepareForWorkshopUpload() { }
 
+		private void TrackPublishedIdFile()
+		{
 			FileInfo file = new FileInfo(Path.Combine(SourceDirectory.FullName, PublishedFileIdFilePath));
-			_hook.PublishedFileId = pfid;
+			_hook.PublishedFileId = _id;
 
-			if(_items.Keys.FirstOrDefault(item => item.FullName == file.FullName) != null)
+			if(uploadableItems.Keys.Any(item => item.FullName == file.FullName))
 			{
 				return;
 			}
-
-			_items.Add(file, true);
+			uploadableItems.Add(file, true);
 		}
+		#endregion
 
-		public string GetWorkshopName() => Title;
-		public string GetWorkshopDescription() => Description;
-		public string GetWorkshopPreviewImagePath() => Preview;
-		public IList<string> GetWorkshopTags() => Tags;
-		public DirectoryInfo GetWorkshopUploadDirectory() => _uploadDirectory;
-		public WorkshopItemHook GetWorkshopItemHook() => new WorkshopItemHook(this);
+
+
 	}
 }

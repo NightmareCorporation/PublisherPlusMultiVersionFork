@@ -7,15 +7,15 @@ namespace PublisherPlus
 	[StaticConstructorOnStartup]
 	public static class Startup
 	{
-		public const string Id = "PublisherPlus";
-		public const string Name = Id;
+		public const string ModId = "PublisherPlus";
+		public const string Name = ModId;
 		public const string Version = "1.9.0";
 
 		public static bool ExperimentalMode { get; set; }
 
 		static Startup()
 		{
-			Harmony harmony = new Harmony(Id);
+			Harmony harmony = new Harmony(ModId);
 			harmony.PatchAll();
 
 			FluffyModManager.AddCompatibility(harmony);

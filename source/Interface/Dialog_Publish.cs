@@ -24,9 +24,8 @@ namespace PublisherPlus.Interface
 
 		public Dialog_Publish(WorkshopItemHook hook)
 		{
-			const int minSize = 600;
-			float width = Mathf.Max(Screen.width * 0.5f, minSize);
-			float height = Mathf.Max(Screen.height * 0.75f, minSize);
+			float width = Mathf.Max(Screen.width * 0.5f, MinimumSize.x);
+			float height = Mathf.Max(Screen.height * 0.75f, MinimumSize.y);
 
 			_initialSize = new Vector2(width, height);
 
@@ -34,7 +33,7 @@ namespace PublisherPlus.Interface
 			pages = new List<Page>()
 			{
 				new Page_Details(package),
-				new Page_Content(package),
+				new Page_Contents(package),
 				new Page_Finalize(package),
 			};
 			currentPage = pages[0];
@@ -47,22 +46,24 @@ namespace PublisherPlus.Interface
 			resizeable = true;
 		}
 
+		private Vector2 MinimumSize = new Vector2(600, 600);
 		public override Vector2 InitialSize => _initialSize;
 		public override void OnCancelKeyPressed() => PreviousPage();
 		private int CurrentIndex => pages.IndexOf(currentPage);
+		private bool IsFirstPage => CurrentIndex == 0;
+		private bool IsLastPage => CurrentIndex == pages.Count - 1;
 
 		private void NextPage()
 		{
 			SoundDefOf.Tick_High.PlayOneShotOnCamera();
 
-			int index = CurrentIndex;
-			if(index == pages.Count - 1)
+			if(IsLastPage)
 			{
 				Upload();
 			}
 			else
 			{
-				currentPage = pages[index - 1];
+				currentPage = pages[CurrentIndex + 1];
 			}
 		}
 
@@ -70,47 +71,62 @@ namespace PublisherPlus.Interface
 		{
 			SoundDefOf.Tick_High.PlayOneShotOnCamera();
 
-			int index = CurrentIndex;
-			if(index == 0)
+			if(IsFirstPage)
 			{
 				Close();
 			}
 			else
 			{
-				currentPage = pages[index - 1];
+				currentPage = pages[CurrentIndex - 1];
 			}
 		}
 
 		public override void DoWindowContents(Rect inRect)
 		{
+			EnforceMinimumSize();
+
+			Listing_Standard list = new Listing_Standard();
+			list.Begin(inRect);
+
 			GameFont previousFont = Text.Font;
 			Text.Font = GameFont.Medium;
-			Rect titleRect = new Rect(inRect.x, inRect.y, inRect.width, Text.LineHeight);
-			Widgets.Label(titleRect, currentPage.Title);
+			list.Label(currentPage.Title);
 			Text.Font = previousFont;
-			Widgets.DrawLineHorizontal(titleRect.x, titleRect.yMax + (Padding / 2f), titleRect.width);
+			list.GapLine();
 
-			Rect contentRect = new Rect(inRect.x, titleRect.yMax + Padding, inRect.width, inRect.height - (titleRect.height + (Padding * 2f) + ButtonHeight));
-
+			Rect contentRect = list.GetRect(inRect.height - list.CurHeight - ButtonHeight);
 			currentPage.DoWindowContents(contentRect);
 
-			Rect buttonRect = new Rect(inRect.x, contentRect.yMax + Padding, inRect.width, ButtonHeight);
-			GridLayout grid = new GridLayout(buttonRect, 6);
+			Rect buttonRect = list.GetRect(ButtonHeight);
+			DoButtonRow(buttonRect);
 
-			string previousText = CurrentIndex == 0 ? Lang.Get("Button.Close") : Lang.Get("Button.Back");
+			list.End();
+		}
+
+		private void EnforceMinimumSize()
+		{
+			windowRect.width = Mathf.Max(windowRect.width, MinimumSize.x);
+			windowRect.height = Mathf.Max(windowRect.height, MinimumSize.y);
+		}
+
+		private void DoButtonRow(Rect inRect)
+		{
+			GridLayout grid = new GridLayout(inRect, 6);
+
+			string previousText = IsFirstPage ? Language.Get("Button.Close") : Language.Get("Button.Back");
 			if(WidgetsPlus.ButtonText(grid.GetCellRect(0, 0, 2), previousText))
 			{
 				PreviousPage();
 			}
-			if(WidgetsPlus.ButtonText(grid.GetCellRect(2, 0), Lang.Get("Button.Default")))
+			if(WidgetsPlus.ButtonText(grid.GetCellRect(2, 0), Language.Get("Button.Default")))
 			{
 				package.ResetConfig();
 			}
-			if(WidgetsPlus.ButtonText(grid.GetCellRect(3, 0), Lang.Get("Button.Save")))
+			if(WidgetsPlus.ButtonText(grid.GetCellRect(3, 0), Language.Get("Button.Save")))
 			{
 				package.SaveConfig();
 			}
-			string nextText = CurrentIndex == 2 ? Lang.Get("Button.Publish") : Lang.Get("Button.Next");
+			string nextText = IsLastPage ? Language.Get("Button.Publish") : Language.Get("Button.Next");
 			if(WidgetsPlus.ButtonText(grid.GetCellRect(4, 0, 2), nextText, package.HasContent()))
 			{
 				NextPage();
