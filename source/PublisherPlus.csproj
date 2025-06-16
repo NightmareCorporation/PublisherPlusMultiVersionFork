@@ -4,6 +4,7 @@
     <TargetFramework>net481</TargetFramework>
     <OutputPath>..\$(Configuration)\Assemblies\</OutputPath>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
     <Configurations>1.3;1.4;1.5;1.6</Configurations>
   </PropertyGroup>
 
@@ -17,24 +18,7 @@
   <PropertyGroup Condition="'$(Configuration)' == '1.6'">
     <DefineConstants>v1_6</DefineConstants>
   </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='1.3|AnyCPU'">
-    <DebugType>none</DebugType>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='1.4|AnyCPU'">
-    <DebugType>none</DebugType>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='1.5|AnyCPU'">
-    <DebugType>none</DebugType>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='1.6|AnyCPU'">
-    <DebugType>none</DebugType>
-  </PropertyGroup>
-  <ItemGroup>
-    <Compile Remove="packages\**" />
-    <EmbeddedResource Remove="packages\**" />
-    <None Remove="packages\**" />
-  </ItemGroup>
-  
+    
   <!-- nuget packages -->
   <ItemGroup>
     <PackageReference Include="Krafs.Rimworld.Ref" Version="$(Configuration).*-*">
