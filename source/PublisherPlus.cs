@@ -1,34 +1,33 @@
-﻿using RimWorld;
-using Verse;
+﻿using PublisherPlus.Data;
 using UnityEngine;
-using PublisherPlus.Data;
+using Verse;
 
 namespace PublisherPlus
 {
-    public class PublisherPlus : Verse.Mod
-    {
-        public static PublisherPlusSettings settings;
+	public class PublisherPlus : Verse.Mod
+	{
+		public static PublisherPlusSettings settings;
 
-        public PublisherPlus(ModContentPack content) : base(content)
-        {
-            settings = GetSettings<PublisherPlusSettings>();
-        }
+		public PublisherPlus(ModContentPack content) : base(content)
+		{
+			settings = GetSettings<PublisherPlusSettings>();
+		}
 
-        public override string SettingsCategory() => "Settings.Title".PrefixTranslate();
+		public override string SettingsCategory() => "Settings.Title".PrefixTranslate();
 
-        // Vanilla rendering, because the fancy checkbox in listingPlus isn't needed here
-        public override void DoSettingsWindowContents(Rect inRect)
-        {
-            checked
-            {
-                Listing_Standard listing = new Listing_Standard();
-                listing.Begin(inRect);
+		// Vanilla rendering, because the fancy checkbox in listingPlus isn't needed here
+		public override void DoSettingsWindowContents(Rect inRect)
+		{
+			checked
+			{
+				Listing_Standard listing = new Listing_Standard();
+				listing.Begin(inRect);
 
-                listing.CheckboxLabeled("Settings.GitIgnore".PrefixTranslate(), ref PublisherPlusSettings.useGitIgnore, "Settings.GitIgnore.Tooltip".PrefixTranslate());
-                listing.End();
+				listing.CheckboxLabeled("Settings.GitIgnore".PrefixTranslate(), ref PublisherPlusSettings.useGitIgnore, "Settings.GitIgnore.Tooltip".PrefixTranslate());
+				listing.End();
 
-                settings.Write();
-            }
-        }
-    }
+				settings.Write();
+			}
+		}
+	}
 }

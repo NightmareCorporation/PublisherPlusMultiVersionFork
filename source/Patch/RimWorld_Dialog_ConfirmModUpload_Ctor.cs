@@ -1,24 +1,24 @@
-﻿using System;
-using HarmonyLib;
+﻿using HarmonyLib;
 using PublisherPlus.Interface;
 using RimWorld;
+using System;
 using UnityEngine;
 using Verse;
 
 namespace PublisherPlus.Patch
 {
-  [HarmonyPatch(typeof(Dialog_ConfirmModUpload), MethodType.Constructor, typeof(ModMetaData), typeof(Action))]
-  internal static class RimWorld_Dialog_ConfirmModUpload_Ctor
-  {
-    private static readonly Color TitleColor = new Color(1f, 0.5f, 0f);
+	[HarmonyPatch(typeof(Dialog_ConfirmModUpload), MethodType.Constructor, typeof(ModMetaData), typeof(Action))]
+	internal static class RimWorld_Dialog_ConfirmModUpload_Ctor
+	{
+		private static readonly Color TitleColor = new Color(1f, 0.5f, 0f);
 
-    private static void Postfix(ref Dialog_ConfirmModUpload __instance, ModMetaData ___mod)
-    {
-      __instance.optionalTitle = Mod.Name.Colorize(TitleColor).Bold();
-      void Action() => Find.WindowStack.Add(new Dialog_Publish(___mod.GetWorkshopItemHook()));
+		private static void Postfix(ref Dialog_ConfirmModUpload __instance, ModMetaData ___mod)
+		{
+			__instance.optionalTitle = Mod.Name.Colorize(TitleColor).Bold();
+			void Action() => Find.WindowStack.Add(new Dialog_Publish(___mod.GetWorkshopItemHook()));
 
-      __instance.buttonAAction = Action;
-      __instance.acceptAction = Action;
-    }
-  }
+			__instance.buttonAAction = Action;
+			__instance.acceptAction = Action;
+		}
+	}
 }
