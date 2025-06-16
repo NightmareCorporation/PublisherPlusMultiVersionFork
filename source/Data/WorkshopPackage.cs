@@ -16,7 +16,7 @@ namespace PublisherPlus.Data
 	/// <summary>
 	/// A mod folder to be uploaded to the workshop. Handles most of the logic for file IO, aggregation, and filtering.
 	/// </summary>
-	internal class WorkshopPackage : WorkshopUploadable
+	public class WorkshopPackage : WorkshopUploadable
 	{
 		private static readonly string separator = Path.DirectorySeparatorChar.ToString();
 
@@ -188,7 +188,9 @@ namespace PublisherPlus.Data
 			}
 
 			// find _items that match the loaded exclusion filters so that they can be exculded again
-			IEnumerable<FileSystemInfo> excludedPaths = _items.Keys.Where(item => exclusions.Any(exclude => item.FullName.StartsWith(exclude, StringComparison.OrdinalIgnoreCase)));
+			IEnumerable<FileSystemInfo> excludedPaths = _items.Keys
+				.ToList()
+				.Where(item => exclusions.Any(exclude => item.FullName.StartsWith(exclude, StringComparison.OrdinalIgnoreCase)));
 
 			foreach(FileSystemInfo path in excludedPaths)
 			{
