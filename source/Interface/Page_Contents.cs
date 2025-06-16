@@ -17,19 +17,46 @@ namespace PublisherPlus.Interface
 
 		public override void DoWindowContents(Rect inRect)
 		{
-			Listing_Standard mainList = new Listing_Standard();
-			mainList.Begin(inRect);
+			Listing_Standard list = new Listing_Standard();
+			list.Begin(inRect);
 
-			mainList.CheckboxLabeled(Language.Get("Settings.GitIgnore"), ref package.useGitIgnore);
-			mainList.Gap();
-			mainList.Label(Language.Get("ContentDirectory").Bold());
-			mainList.Label(package.SourceDirectory.FullName.Italic());
-			mainList.GapLine();
+			DoGitIgnoreControl(list);
+			list.Gap();
+			list.Label(Language.Get("ContentDirectory").Bold());
+			list.Label(package.SourceDirectory.FullName.Italic());
+			list.GapLine();
 
-			Rect fileListRect = mainList.GetRect(inRect.height - mainList.CurHeight);
+			Rect fileListRect = list.GetRect(inRect.height - list.CurHeight);
 			DoFileList(fileListRect);
 
-			mainList.End();
+			list.End();
+		}
+
+		private void DoGitIgnoreControl(Listing_Standard list)
+		{
+			Rect checkboxRect;
+			if(package.useGitIgnore)
+			{
+				Rect rowRect = list.GetRect(Text.LineHeight);
+				string parseLabel = Language.Get("Settings.ParseGitIgnore");
+				float buttonWidth = Text.CalcSize(parseLabel + "    ").x;
+				Rect buttonRect = rowRect.RightPartPixels(buttonWidth);
+				checkboxRect = rowRect.LeftPartPixels(rowRect.width - buttonRect.width);
+				if(Widgets.ButtonText(buttonRect, parseLabel))
+				{
+					package.ParseGitIgnore();
+				}
+			}
+			else
+			{
+				checkboxRect = list.GetRect(Text.LineHeight);
+			}
+			bool previousValue = package.useGitIgnore;
+			Widgets.CheckboxLabeled(checkboxRect, Language.Get("Settings.GitIgnore"), ref package.useGitIgnore);
+			if(previousValue == false && package.useGitIgnore)
+			{
+				package.ParseGitIgnore();
+			}
 		}
 
 		private void DoFileList(Rect inRect)
@@ -71,7 +98,12 @@ namespace PublisherPlus.Interface
 			bool include = isIncluded;
 			Color? color = isIncluded ? (Color?)null : Color.red;
 
-			list.CheckboxLabeled(path, ref include, file.FullName, color);
+			string fileLabel = package.GetRelativePath(file);
+			for(int i = 0; i < fileLabel.Count(c => c == Path.DirectorySeparatorChar); i++)
+			{
+				fileLabel = $"  {fileLabel}";
+			}
+			list.CheckboxLabeled(fileLabel, ref include, file.FullName, color);
 
 			if(include != isIncluded)
 			{

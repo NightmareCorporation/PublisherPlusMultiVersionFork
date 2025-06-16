@@ -23,6 +23,7 @@
   <!-- Settings -->
   <PublisherPlus.Settings.Title>Publisher Plus</PublisherPlus.Settings.Title>
   <PublisherPlus.Settings.GitIgnore>Use gitignore file</PublisherPlus.Settings.GitIgnore>
+  <PublisherPlus.Settings.ParseGitIgnore>Parse .gitignore</PublisherPlus.Settings.ParseGitIgnore>
   <PublisherPlus.Settings.GitIgnore.Tooltip>If the mod directory contains a .gitignore file, it will be used to filter files/ folders before uploading to the workshop (items matched by the ignore file will not be listed in the mod contents dialogue prior to upload). </PublisherPlus.Settings.GitIgnore.Tooltip>
   
 </LanguageData>

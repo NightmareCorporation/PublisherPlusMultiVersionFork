@@ -18,12 +18,12 @@ namespace PublisherPlus.Data
 	/// </summary>
 	public class WorkshopPackage : WorkshopUploadable
 	{
-		private static readonly string separator = Path.DirectorySeparatorChar.ToString();
+		public static readonly string separator = Path.DirectorySeparatorChar.ToString();
 
 		private const string TempFolderName = "PublisherPlus\\Temp";
 		private const string ConfigFileName = "_PublisherPlus.xml";
 		private const string PublishedFileIdFilePath = "About\\PublishedFileId.txt";
-		private const string GitIgnorePath = ".gitignore";
+		private const string GitIgnoreName = ".gitignore";
 
 		private static readonly DirectoryInfo TempDirectory = new DirectoryInfo(Path.Combine(GenFilePaths.ConfigFolderPath, TempFolderName));
 
@@ -92,7 +92,8 @@ namespace PublisherPlus.Data
 			SourceDirectory = new DirectoryInfo(_hook.Directory.FullName);
 		}
 
-		public bool IsIncluded(FileSystemInfo item) => !uploadableItems.ContainsKey(item) || uploadableItems[item];
+		public bool IsIncluded(FileSystemInfo item) => !uploadableItems.ContainsKey(item) || uploadableItems[item]
+			&& IsAllowedByGitignore(item);
 
 		public void SetIncluded(FileSystemInfo item, bool value)
 		{
@@ -109,7 +110,22 @@ namespace PublisherPlus.Data
 		/// <summary>
 		/// Gets the path relative to the root <see cref="SourceDirectory">, if the item is a directory, appends a trailing slash
 		/// </summary>
-		public string GetRelativePath(FileSystemInfo item) => item.FullName.Substring(SourceDirectory.FullName.Length + 1) + (item.IsDirectory() ? separator : "");
+		public string GetRelativePath(FileSystemInfo item)
+		{
+			return item.FullName.Substring(SourceDirectory.FullName.Length + 1) + (item.IsDirectory() ? separator : "");
+		}
+		/// <summary>
+		/// Gets the relative path of <paramref name="item"/> to the given <paramref name="directory"/>.
+		/// Returns <see cref="null"/> if the given <paramref name="item"/> is not located within the given <paramref name="directory"/>.
+		/// </summary>
+		public string GetRelativePathTo(FileSystemInfo item, FileSystemInfo directory)
+		{
+			if(!item.FullName.Contains(directory.FullName))
+			{
+				return null;
+			}
+			return item.FullName.Replace(directory.FullName, "");
+		}
 
 		/// <summary>
 		/// Sets the <see cref="uploadableItems"/> dictionary to all files and directories in <see cref="SourceDirectory"/> (excluding <see cref="ConfigFileName"/>)
@@ -120,23 +136,46 @@ namespace PublisherPlus.Data
 				.OrderBy(item => item.FullName)
 				.Where(item => item.Name != ConfigFileName);
 
-			// apply .gitignore
-			string ignoreFile = Path.Combine(SourceDirectory.FullName, GitIgnorePath);
-
-			if(useGitIgnore && File.Exists(ignoreFile))
-			{
-				GitignoreParser parse = new GitignoreParser(ignoreFile, Encoding.UTF8);
-
-				contents = contents.Where(dir => parse.Accepts(separator + GetRelativePath(dir)));
-			}
-
-
 			uploadableItems.Clear();
 
 			foreach(FileSystemInfo path in contents)
 			{
 				uploadableItems.Add(path, true);
 			}
+		}
+
+		/// <summary>
+		/// There can be multiple .gitignore files located throughout a solution, each gitignore must apply its filters relative to the file location
+		/// </summary>
+		private Dictionary<FileSystemInfo, GitignoreParser> gitIgnoreParsers;
+		public void ParseGitIgnore()
+		{
+			gitIgnoreParsers = AllContent.Where(item => item.Name == GitIgnoreName)
+				.ToDictionary(file => file, file => new GitignoreParser(file.FullName, Encoding.UTF8));
+			if(gitIgnoreParsers.NullOrEmpty())
+			{
+				Startup.Error($"Could not find and parse any .gitignore files");
+			}
+			else
+			{
+				Startup.Log($"Parsed {gitIgnoreParsers.Count} .gitignore files located at: \n{String.Join("\n", gitIgnoreParsers.Keys)}");
+			}
+		}
+		private bool IsAllowedByGitignore(FileSystemInfo file)
+		{
+			if(!useGitIgnore)
+			{
+				return true;
+			}
+			if(gitIgnoreParsers.NullOrEmpty())
+			{
+				return true;
+			}
+			return gitIgnoreParsers.All(kvp =>
+			{
+				string relativePath = GetRelativePathTo(file, kvp.Key);
+				return relativePath == null || kvp.Value.Accepts(relativePath);
+			});
 		}
 
 		/// <summary>
