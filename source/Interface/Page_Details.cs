@@ -6,7 +6,7 @@ namespace PublisherPlus.Interface
 {
 	public class Page_Details : Page
 	{
-		public Page_Details(WorkshopPackage package) : base(package) { }
+		public Page_Details(ManagedWorkshopPackage package) : base(package) { }
 
 		public override string Title => Language.Get("Title.Details");
 
@@ -17,7 +17,7 @@ namespace PublisherPlus.Interface
 			list.Gap();
 
 			list.Label(Language.Get("FileId").Bold());
-			list.Label(package.Id.Italic());
+			list.Label(package.ReadableId.Italic());
 			list.GapLine();
 
 			list.Label(Language.Get("Title").Bold());

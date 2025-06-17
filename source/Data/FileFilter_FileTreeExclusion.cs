@@ -6,7 +6,7 @@ namespace PublisherPlus.Data
 	public class FileFilter_FileTreeExclusion : FileFilter
 	{
 		List<FileSystemInfo> fileExclusionPaths = new List<FileSystemInfo>();
-		public FileFilter_FileTreeExclusion(WorkshopPackage package) : base(package) { }
+		public FileFilter_FileTreeExclusion(ManagedWorkshopPackage package) : base(package) { }
 
 		public override string FilterReason => "FileTreeExclusion";
 

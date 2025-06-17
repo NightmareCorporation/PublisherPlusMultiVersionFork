@@ -17,7 +17,7 @@ namespace PublisherPlus.Interface
 		private const float Padding = 12f;
 		private const float ButtonHeight = 50f;
 
-		private readonly WorkshopPackage package;
+		private readonly ManagedWorkshopPackage package;
 		Vector2 _initialSize;
 		private readonly List<Page> pages;
 		private Page currentPage;
@@ -29,7 +29,7 @@ namespace PublisherPlus.Interface
 
 			_initialSize = new Vector2(width, height);
 
-			package = new WorkshopPackage(hook);
+			package = new ManagedWorkshopPackage(hook);
 			pages = new List<Page>()
 			{
 				new Page_Details(package),

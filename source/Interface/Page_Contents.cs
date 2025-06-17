@@ -11,7 +11,7 @@ namespace PublisherPlus.Interface
 	{
 		private Vector2 scrollPos;
 
-		public Page_Contents(WorkshopPackage package) : base(package) { }
+		public Page_Contents(ManagedWorkshopPackage package) : base(package) { }
 
 		public override string Title => Language.Get("Title.Contents");
 

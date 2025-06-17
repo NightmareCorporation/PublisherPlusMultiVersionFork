@@ -5,9 +5,9 @@ namespace PublisherPlus.Interface
 {
 	public abstract class Page
 	{
-		protected WorkshopPackage package;
+		protected ManagedWorkshopPackage package;
 
-		public Page(WorkshopPackage package)
+		public Page(ManagedWorkshopPackage package)
 		{
 			this.package = package;
 		}

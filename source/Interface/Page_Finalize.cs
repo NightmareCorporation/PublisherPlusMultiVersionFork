@@ -5,7 +5,7 @@ namespace PublisherPlus.Interface
 {
 	public class Page_Finalize : Page
 	{
-		public Page_Finalize(WorkshopPackage package) : base(package) { }
+		public Page_Finalize(ManagedWorkshopPackage package) : base(package) { }
 
 		public override string Title => Language.Get("Title.Finalize");
 
@@ -14,7 +14,7 @@ namespace PublisherPlus.Interface
 			Verse.Listing_Standard list = new Verse.Listing_Standard();
 			list.Begin(inRect);
 			list.Gap();
-			list.Label(Language.Get("FinalInformation", package.Title.Bold(), package.Id.Bold()));
+			list.Label(Language.Get("FinalInformation", package.Title.Bold(), package.ReadableId.Bold()));
 			list.End();
 		}
 	}

@@ -11,7 +11,7 @@ namespace PublisherPlus.Data
 	public class FileFilter_GitIgnore : FileFilter
 	{
 		private const string GitIgnoreName = ".gitignore";
-		public FileFilter_GitIgnore(WorkshopPackage package) : base(package)
+		public FileFilter_GitIgnore(ManagedWorkshopPackage package) : base(package)
 		{
 			ParseGitIgnore();
 		}

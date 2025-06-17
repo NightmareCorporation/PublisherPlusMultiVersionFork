@@ -4,8 +4,8 @@ namespace PublisherPlus.Data
 {
 	public abstract class FileFilter
 	{
-		protected WorkshopPackage package;
-		public FileFilter(WorkshopPackage package)
+		protected ManagedWorkshopPackage package;
+		public FileFilter(ManagedWorkshopPackage package)
 		{
 			this.package = package;
 		}
