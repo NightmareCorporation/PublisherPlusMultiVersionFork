@@ -1,5 +1,6 @@
 ﻿using PublisherPlus.Data;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
@@ -39,21 +40,30 @@ namespace PublisherPlus.Interface
 			if(useGitIgnore)
 			{
 				Rect rowRect = list.GetRect(Text.LineHeight);
-				string parseLabel = Language.Get("Settings.ParseGitIgnore");
+
+				string parseLabel = Language.Get("GitIgnore.ParseGitIgnore");
 				float buttonWidth = Text.CalcSize(parseLabel + "    ").x;
 				Rect buttonRect = rowRect.RightPartPixels(buttonWidth);
-				checkboxRect = rowRect.LeftPartPixels(rowRect.width - buttonRect.width);
+				rowRect.xMax -= buttonRect.width;
 				if(Widgets.ButtonText(buttonRect, parseLabel))
 				{
 					package.gitIgnoreFilter.ParseGitIgnore();
 				}
+
+				Rect infoIconRect = rowRect.RightPartPixels(Text.LineHeight);
+				rowRect.xMax -= infoIconRect.width;
+				Widgets.DrawTextureFitted(infoIconRect, TexButton.Info, 1);
+				string gitIgnoreInfoText = package.gitIgnoreFilter.GitIgnoreInfoText;
+				TooltipHandler.TipRegion(infoIconRect, gitIgnoreInfoText);
+
+				checkboxRect = rowRect;
 			}
 			else
 			{
 				checkboxRect = list.GetRect(Text.LineHeight);
 			}
 			bool previousValue = useGitIgnore;
-			Widgets.CheckboxLabeled(checkboxRect, Language.Get("Settings.GitIgnore"), ref package.SerializedData.GitIgnore.UseGitIgnore);
+			Widgets.CheckboxLabeled(checkboxRect, Language.Get("GitIgnore.UseGitIgnore"), ref package.SerializedData.GitIgnore.UseGitIgnore);
 			if(previousValue == false && useGitIgnore)
 			{
 				package.gitIgnoreFilter.ParseGitIgnore();
@@ -77,11 +87,17 @@ namespace PublisherPlus.Interface
 			int indexRange = Math.Min((int)(inRect.height / entryHeight) + 1, listingCount);
 			int endIndex = startIndex + indexRange;
 
+
 			if(startIndex >= 0 && endIndex <= listingCount)
 			{
-				for(int i = startIndex; i < endIndex; i++)
+				IReadOnlyCollection<FileSystemInfo> files = package.AllFiles
+					.OrderByDescending(f => package.AllowsPublishing(f, out _))
+					.Skip(startIndex)
+					.Take(indexRange)
+					.ToList();
+
+				foreach(FileSystemInfo item in files)
 				{
-					FileSystemInfo item = package.AllFiles.ElementAt(i);
 					DoFileEntry(list, item);
 				}
 			}

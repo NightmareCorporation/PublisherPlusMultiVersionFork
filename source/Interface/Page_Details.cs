@@ -17,7 +17,7 @@ namespace PublisherPlus.Interface
 			list.Gap();
 
 			list.Label(Language.Get("FileId").Bold());
-			list.Label(package.ReadableId.Italic());
+			list.Label(package.UploadablePackage.ReadablePublishedFileId.Italic());
 			list.GapLine();
 
 			list.Label(Language.Get("Title").Bold());

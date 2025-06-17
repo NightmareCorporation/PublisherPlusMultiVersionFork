@@ -19,13 +19,13 @@ namespace PublisherPlus.Data
 
 		private const string TempFolderName = "PublisherPlus\\Temp";
 		private const string ConfigFileName = "_PublisherPlusV2.xml";
-		private const string PublishedFileIdFilePath = "About\\PublishedFileId.txt";
 
 		private static readonly DirectoryInfo TempDirectory = new DirectoryInfo(Path.Combine(GenFilePaths.ConfigFolderPath, TempFolderName));
 
 		private static ManagedWorkshopPackage _current;
 		public SerializedData SerializedData { get; set; }
 		public UploadablePackage UploadablePackage => SerializedData.UploadablePackage;
+		public bool IsNewCreation => SerializedData.UploadablePackage.PublishedFileId == PublishedFileId_t.Invalid;
 
 		private readonly WorkshopItemHook workshopItemHook;
 		private List<FileSystemInfo> allFiles = new List<FileSystemInfo>();
@@ -35,13 +35,9 @@ namespace PublisherPlus.Data
 		public FileFilter_GitIgnore gitIgnoreFilter;
 		public FileFilter_FileTreeExclusion fileTreeExclusionFilter;
 
-		private PublishedFileId_t publishedFileId;
-		public string ReadableId => publishedFileId == PublishedFileId_t.Invalid ? Language.Get("NewFileId") : publishedFileId.ToString();
-
 		public ManagedWorkshopPackage(WorkshopItemHook hook)
 		{
 			workshopItemHook = hook;
-			publishedFileId = hook.PublishedFileId;
 			SourceDirectory = hook.Directory;
 
 			LoadFromConfigFile();
@@ -86,11 +82,11 @@ namespace PublisherPlus.Data
 		{
 			UploadablePackage.ResetToOriginalHookData();
 			SetAllFiles();
+			filters.ForEach(filter => filter.Reset());
 		}
-
 		#endregion
+
 		public bool PreviewExists => UploadablePackage.PreviewFile.ExistsNow();
-		public bool IsNewCreation => publishedFileId == PublishedFileId_t.Invalid;
 
 		public DirectoryInfo SourceDirectory { get; private set; }
 
@@ -103,7 +99,7 @@ namespace PublisherPlus.Data
 			filters = new List<FileFilter>()
 			{
 				gitIgnoreFilter,
-				fileTreeExclusionFilter
+				fileTreeExclusionFilter,
 			};
 		}
 
@@ -113,6 +109,10 @@ namespace PublisherPlus.Data
 			bool isPublishingAllowed = true;
 			foreach(FileFilter filter in filters)
 			{
+				if(!filter.IsActive)
+				{
+					continue;
+				}
 				if(!filter.AllowsPublishing(item))
 				{
 					isPublishingAllowed = false;
@@ -123,12 +123,9 @@ namespace PublisherPlus.Data
 			return isPublishingAllowed;
 		}
 
-		/// <summary>
-		/// Gets the path relative to the root <see cref="SourceDirectory">, if the item is a directory, appends a trailing slash
-		/// </summary>
 		public string GetRelativePath(FileSystemInfo item)
 		{
-			return item.FullName.Substring(SourceDirectory.FullName.Length + 1) + (item.IsDirectory() ? separator : "");
+			return item.FullName.Substring(SourceDirectory.FullName.Length + 1);
 		}
 
 		private void SetAllFiles()
@@ -213,28 +210,5 @@ namespace PublisherPlus.Data
 			_current = null;
 			TempDirectory.Delete(true);
 		}
-
-		#region IWorkshopUploadable
-		public void SetPublishedFileId(PublishedFileId_t pfid)
-		{
-			publishedFileId = pfid;
-			TrackPublishedIdFile();
-		}
-		public void PrepareForWorkshopUpload() { }
-
-		private void TrackPublishedIdFile()
-		{
-			FileInfo file = new FileInfo(Path.Combine(SourceDirectory.FullName, PublishedFileIdFilePath));
-			workshopItemHook.PublishedFileId = publishedFileId;
-
-			if(allFiles.Contains(file))
-			{
-				return;
-			}
-			allFiles.Add(file);
-		}
-		#endregion
-
-
 	}
 }

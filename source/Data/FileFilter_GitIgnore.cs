@@ -24,12 +24,12 @@ namespace PublisherPlus.Data
 
 		public override string FilterReason => ".gitignore";
 
+		public string GitIgnoreInfoText => gitIgnoreParsers.NullOrEmpty() ?
+			Language.Get("GitIgnore.Info.NoGitIgnoreFound") :
+			Language.Get("GitIgnore.Info.GitIgnores", gitIgnoreParsers.Count, String.Join("\n", gitIgnoreParsers.Keys.Select(key => key.FullName)));
+
 		public override bool AllowsPublishing(FileSystemInfo file)
 		{
-			if(!package.SerializedData.GitIgnore.UseGitIgnore)
-			{
-				return true;
-			}
 			if(gitIgnoreParsers.NullOrEmpty())
 			{
 				return true;
@@ -39,6 +39,13 @@ namespace PublisherPlus.Data
 				string relativePath = file.GetRelativePathTo(kvp.Key);
 				return relativePath == null || kvp.Value.Accepts(relativePath);
 			});
+		}
+
+		public override bool IsActive => package.SerializedData.GitIgnore.UseGitIgnore;
+
+		public override void Reset()
+		{
+			package.SerializedData.GitIgnore.UseGitIgnore = false;
 		}
 
 		public void ParseGitIgnore()

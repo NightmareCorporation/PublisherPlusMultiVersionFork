@@ -56,6 +56,17 @@ namespace PublisherPlus.Data
 		[XmlIgnore]
 		public PublishedFileId_t PublishedFileId { get; set; }
 		public PublishedFileId_t GetPublishedFileId() => PublishedFileId;
+		public string ReadablePublishedFileId
+		{
+			get
+			{
+				if(PublishedFileId == PublishedFileId_t.Invalid)
+				{
+					return Language.Get("NewFileId");
+				}
+				return PublishedFileId.ToString();
+			}
+		}
 		public void SetPublishedFileId(Steamworks.PublishedFileId_t pfid) => PublishedFileId = pfid;
 
 		private FileInfo _previewFile;
