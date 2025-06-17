@@ -5,20 +5,25 @@ using Verse;
 
 namespace PublisherPlus.Data
 {
-	public class FileFilter_FileTreeExclusion : FileFilter
+	public class FileFilter_FileTreeExclusion : IFileFilter
 	{
+		ManagedWorkshopPackage package;
 		List<FileSystemInfo> FileExclusionPaths => package.SerializedData.FileTreeExclusions.ExcludedFiles;
-		public FileFilter_FileTreeExclusion(ManagedWorkshopPackage package) : base(package) { }
 
-		public override string FilterReason => "FileTreeExclusion";
+		public void SetWorkshopPackage(ManagedWorkshopPackage package)
+		{
+			this.package = package;
+		}
 
-		public override bool AllowsPublishing(FileSystemInfo file)
+		public string FilterReason => "FileTreeExclusion";
+
+		public bool AllowsPublishing(FileSystemInfo file)
 		{
 			return !FileExclusionPaths.Any(exclusionPath => file.FullName.StartsWith(exclusionPath.FullName));
 		}
-		public override bool IsActive => true;
+		public bool IsActive => true;
 
-		public override void Reset()
+		public void Reset()
 		{
 			FileExclusionPaths.Clear();
 		}
@@ -37,5 +42,6 @@ namespace PublisherPlus.Data
 				FileExclusionPaths.Remove(item);
 			}
 		}
+
 	}
 }

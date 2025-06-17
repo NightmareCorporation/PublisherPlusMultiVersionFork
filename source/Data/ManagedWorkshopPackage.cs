@@ -31,7 +31,7 @@ namespace PublisherPlus.Data
 		private List<FileSystemInfo> allFiles = new List<FileSystemInfo>();
 		public IReadOnlyCollection<FileSystemInfo> AllFiles => allFiles;
 
-		private List<FileFilter> filters;
+		private List<IFileFilter> filters;
 		public FileFilter_GitIgnore gitIgnoreFilter;
 		public FileFilter_FileTreeExclusion fileTreeExclusionFilter;
 
@@ -94,20 +94,21 @@ namespace PublisherPlus.Data
 
 		private void SetFilters()
 		{
-			gitIgnoreFilter = new FileFilter_GitIgnore(this);
-			fileTreeExclusionFilter = new FileFilter_FileTreeExclusion(this);
-			filters = new List<FileFilter>()
+			gitIgnoreFilter = new FileFilter_GitIgnore();
+			fileTreeExclusionFilter = new FileFilter_FileTreeExclusion();
+			filters = new List<IFileFilter>()
 			{
 				gitIgnoreFilter,
 				fileTreeExclusionFilter,
 			};
+			filters.ForEach(filter => filter.SetWorkshopPackage(this));
 		}
 
 		public bool AllowsPublishing(FileSystemInfo item, out string reason)
 		{
 			List<string> reasons = new List<string>();
 			bool isPublishingAllowed = true;
-			foreach(FileFilter filter in filters)
+			foreach(IFileFilter filter in filters)
 			{
 				if(!filter.IsActive)
 				{

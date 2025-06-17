@@ -8,7 +8,7 @@ using Verse;
 
 namespace PublisherPlus.Data
 {
-	public class FileFilter_GitIgnore : FileFilter
+	public class FileFilter_GitIgnore : IFileFilter
 	{
 		/// <summary>
 		/// There can be multiple .gitignore files located throughout a solution, each gitignore must apply its filters relative to the file location
@@ -17,18 +17,21 @@ namespace PublisherPlus.Data
 
 		private const string GitIgnoreName = ".gitignore";
 
-		public FileFilter_GitIgnore(ManagedWorkshopPackage package) : base(package)
+		ManagedWorkshopPackage package;
+
+		public void SetWorkshopPackage(ManagedWorkshopPackage package)
 		{
+			this.package = package;
 			ParseGitIgnore();
 		}
 
-		public override string FilterReason => ".gitignore";
+		public string FilterReason => ".gitignore";
 
 		public string GitIgnoreInfoText => gitIgnoreParsers.NullOrEmpty() ?
 			Language.Get("GitIgnore.Info.NoGitIgnoreFound") :
 			Language.Get("GitIgnore.Info.GitIgnores", gitIgnoreParsers.Count, String.Join("\n", gitIgnoreParsers.Keys.Select(key => key.FullName)));
 
-		public override bool AllowsPublishing(FileSystemInfo file)
+		public bool AllowsPublishing(FileSystemInfo file)
 		{
 			if(gitIgnoreParsers.NullOrEmpty())
 			{
@@ -41,9 +44,9 @@ namespace PublisherPlus.Data
 			});
 		}
 
-		public override bool IsActive => package.SerializedData.GitIgnore.UseGitIgnore;
+		public bool IsActive => package.SerializedData.GitIgnore.UseGitIgnore;
 
-		public override void Reset()
+		public void Reset()
 		{
 			package.SerializedData.GitIgnore.UseGitIgnore = false;
 		}
