@@ -35,7 +35,8 @@ namespace PublisherPlus.Interface
 		private void DoGitIgnoreControl(Listing_Standard list)
 		{
 			Rect checkboxRect;
-			if(package.useGitIgnore)
+			bool useGitIgnore = package.SerializedData.GitIgnore.UseGitIgnore;
+			if(useGitIgnore)
 			{
 				Rect rowRect = list.GetRect(Text.LineHeight);
 				string parseLabel = Language.Get("Settings.ParseGitIgnore");
@@ -51,9 +52,9 @@ namespace PublisherPlus.Interface
 			{
 				checkboxRect = list.GetRect(Text.LineHeight);
 			}
-			bool previousValue = package.useGitIgnore;
-			Widgets.CheckboxLabeled(checkboxRect, Language.Get("Settings.GitIgnore"), ref package.useGitIgnore);
-			if(previousValue == false && package.useGitIgnore)
+			bool previousValue = useGitIgnore;
+			Widgets.CheckboxLabeled(checkboxRect, Language.Get("Settings.GitIgnore"), ref package.SerializedData.GitIgnore.UseGitIgnore);
+			if(previousValue == false && useGitIgnore)
 			{
 				package.gitIgnoreFilter.ParseGitIgnore();
 			}
@@ -91,21 +92,26 @@ namespace PublisherPlus.Interface
 
 		private void DoFileEntry(Listing_Standard list, FileSystemInfo file)
 		{
-			string path = package.GetRelativePath(file);
-			path = file.IsDirectory() ? path.Bold() : path;
-
-			bool isAllowed = package.AllowsPublishing(file);
-			bool allowFromFileTree = isAllowed;
-			Color? color = isAllowed ? (Color?)null : Color.red;
-
 			string fileLabel = package.GetRelativePath(file);
+			fileLabel = file.IsDirectory() ? fileLabel.Bold() : fileLabel;
 			int indentCount = fileLabel.Count(c => c == Path.DirectorySeparatorChar);
 			fileLabel = fileLabel.Indent(indentCount);
-			list.CheckboxLabeled(fileLabel, ref allowFromFileTree, file.FullName, color);
 
-			if(allowFromFileTree != isAllowed)
+			bool canPublishFile = package.AllowsPublishing(file, out string reason);
+			bool isIncludedByTreeFilter = package.fileTreeExclusionFilter.AllowsPublishing(file);
+			Color? color = canPublishFile ? (Color?)null : Color.red;
+
+			string tooltip = file.FullName;
+			if(reason != null)
 			{
-				package.fileTreeExclusionFilter.SetExcluded(file, allowFromFileTree);
+				tooltip += $"\n\n{Language.Get("FileNotAllowedToPublishReason", reason)}";
+			}
+
+			bool previousIncludedByTreeFilter = isIncludedByTreeFilter;
+			list.CheckboxLabeled(fileLabel, ref isIncludedByTreeFilter, tooltip, color);
+			if(isIncludedByTreeFilter != previousIncludedByTreeFilter)
+			{
+				package.fileTreeExclusionFilter.SetExcluded(file, !isIncludedByTreeFilter);
 			}
 		}
 	}

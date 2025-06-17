@@ -21,30 +21,30 @@ namespace PublisherPlus.Interface
 			list.GapLine();
 
 			list.Label(Language.Get("Title").Bold());
-			package.Title = list.TextEntry(package.Title);
+			package.UploadablePackage.Title = list.TextEntry(package.UploadablePackage.Title);
 			const string experimentalMode = "*#exp#"; // Experimental Mode: Can load tags in xml
-			if(package.Title.EndsWith(experimentalMode))
+			if(package.UploadablePackage.Title.EndsWith(experimentalMode))
 			{
-				package.Title = package.Title.Substring(0, package.Title.Length - experimentalMode.Length);
+				package.UploadablePackage.Title = package.UploadablePackage.Title.Substring(0, package.UploadablePackage.Title.Length - experimentalMode.Length);
 				Startup.ExperimentalMode = true;
 				Startup.Warning("Experimental Mode activated");
 			}
 			list.GapLine();
 
 			list.Label(Language.Get("Description").Bold() + (package.IsNewCreation ? null : Language.Get("DescriptionLocked")));
-			string description = list.TextEntry(package.Description, 6);
+			string description = list.TextEntry(package.UploadablePackage.Description, 6);
 			if(package.IsNewCreation)
 			{
-				package.Description = description;
+				package.UploadablePackage.Description = description;
 			}
 			list.GapLine();
 
 			list.Label(Language.Get("Tags").Bold());
-			list.Label(package.Tags.ToCommaList().Italic());
+			list.Label(package.UploadablePackage.Tags.ToCommaList().Italic());
 			list.GapLine();
 
 			list.Label(Language.Get("PreviewFile").Bold() + (package.PreviewExists ? null : Language.Get("PreviewNotFound").Italic()));
-			package.Preview = list.TextEntry(package.Preview);
+			package.UploadablePackage.PreviewFilePath = list.TextEntry(package.UploadablePackage.PreviewFilePath);
 
 			list.End();
 		}

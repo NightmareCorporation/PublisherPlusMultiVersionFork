@@ -124,7 +124,7 @@ namespace PublisherPlus.Interface
 			}
 			if(WidgetsPlus.ButtonText(grid.GetCellRect(3, 0), Language.Get("Button.Save")))
 			{
-				package.SaveConfig();
+				package.SaveToConfigFile();
 			}
 			string nextText = IsLastPage ? Language.Get("Button.Publish") : Language.Get("Button.Next");
 			if(WidgetsPlus.ButtonText(grid.GetCellRect(4, 0, 2), nextText, package.HasContent()))
@@ -135,7 +135,7 @@ namespace PublisherPlus.Interface
 
 		private void Upload()
 		{
-			package.Upload();
+			package.UploadToWorkshop();
 			Close();
 		}
 	}

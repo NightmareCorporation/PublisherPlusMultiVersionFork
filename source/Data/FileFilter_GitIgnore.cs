@@ -10,7 +10,13 @@ namespace PublisherPlus.Data
 {
 	public class FileFilter_GitIgnore : FileFilter
 	{
+		/// <summary>
+		/// There can be multiple .gitignore files located throughout a solution, each gitignore must apply its filters relative to the file location
+		/// </summary>
+		private Dictionary<FileSystemInfo, GitignoreParser> gitIgnoreParsers;
+
 		private const string GitIgnoreName = ".gitignore";
+
 		public FileFilter_GitIgnore(ManagedWorkshopPackage package) : base(package)
 		{
 			ParseGitIgnore();
@@ -20,7 +26,7 @@ namespace PublisherPlus.Data
 
 		public override bool AllowsPublishing(FileSystemInfo file)
 		{
-			if(!package.useGitIgnore)
+			if(!package.SerializedData.GitIgnore.UseGitIgnore)
 			{
 				return true;
 			}
@@ -35,10 +41,6 @@ namespace PublisherPlus.Data
 			});
 		}
 
-		/// <summary>
-		/// There can be multiple .gitignore files located throughout a solution, each gitignore must apply its filters relative to the file location
-		/// </summary>
-		private Dictionary<FileSystemInfo, GitignoreParser> gitIgnoreParsers;
 		public void ParseGitIgnore()
 		{
 			gitIgnoreParsers = package.AllFiles.Where(item => item.Name == GitIgnoreName)

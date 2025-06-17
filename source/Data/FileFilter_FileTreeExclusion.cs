@@ -1,30 +1,34 @@
 ﻿using System.Collections.Generic;
 using System.IO;
+using System.Linq;
+using Verse;
 
 namespace PublisherPlus.Data
 {
 	public class FileFilter_FileTreeExclusion : FileFilter
 	{
-		List<FileSystemInfo> fileExclusionPaths = new List<FileSystemInfo>();
+		List<FileSystemInfo> FileExclusionPaths => package.SerializedData.FileTreeExclusion.ExcludedFiles;
 		public FileFilter_FileTreeExclusion(ManagedWorkshopPackage package) : base(package) { }
 
 		public override string FilterReason => "FileTreeExclusion";
 
 		public override bool AllowsPublishing(FileSystemInfo file)
 		{
-			return fileExclusionPaths.Contains(file);
+			return !FileExclusionPaths.Any(exclusionPath => file.FullName.StartsWith(exclusionPath.FullName));
 		}
 
 		public void SetExcluded(FileSystemInfo item, bool isExcluded)
 		{
 			if(isExcluded)
 			{
-				fileExclusionPaths.Add(item);
-				fileExclusionPaths.RemoveAll(path => path.FullName.StartsWith(item.FullName));
+				Log.Message($"Added file exclusion path: {item.FullName}");
+				FileExclusionPaths.RemoveAll(path => path.FullName.StartsWith(item.FullName));
+				FileExclusionPaths.Add(item);
 			}
 			else
 			{
-				fileExclusionPaths.Remove(item);
+				Log.Message($"Removed file exclusion path: {item.FullName}");
+				FileExclusionPaths.Remove(item);
 			}
 		}
 	}

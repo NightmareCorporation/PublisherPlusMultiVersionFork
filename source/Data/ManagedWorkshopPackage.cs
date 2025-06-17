@@ -7,25 +7,25 @@ using System.Linq;
 using System.Xml.Serialization;
 using Verse;
 using Verse.Steam;
-using Version = System.Version;
 
 namespace PublisherPlus.Data
 {
 	/// <summary>
 	/// A mod folder to be uploaded to the workshop. Handles most of the logic for file IO, aggregation, and filtering.
 	/// </summary>
-	[XmlRootAttribute("WorkshopPackage")]
-	public class ManagedWorkshopPackage : WorkshopUploadable
+	public class ManagedWorkshopPackage
 	{
 		public static readonly string separator = Path.DirectorySeparatorChar.ToString();
 
 		private const string TempFolderName = "PublisherPlus\\Temp";
-		private const string ConfigFileName = "_PublisherPlus.xml";
+		private const string ConfigFileName = "_PublisherPlusV2.xml";
 		private const string PublishedFileIdFilePath = "About\\PublishedFileId.txt";
 
 		private static readonly DirectoryInfo TempDirectory = new DirectoryInfo(Path.Combine(GenFilePaths.ConfigFolderPath, TempFolderName));
 
 		private static ManagedWorkshopPackage _current;
+		public SerializedData SerializedData { get; set; }
+		public UploadablePackage UploadablePackage => SerializedData.UploadablePackage;
 
 		private readonly WorkshopItemHook workshopItemHook;
 		private List<FileSystemInfo> allFiles = new List<FileSystemInfo>();
@@ -42,11 +42,13 @@ namespace PublisherPlus.Data
 		{
 			workshopItemHook = hook;
 			publishedFileId = hook.PublishedFileId;
+			SourceDirectory = hook.Directory;
 
-			CopyMetadataFromHook();
+			LoadFromConfigFile();
+			UploadablePackage.OriginalPackageHook = hook;
+			UploadablePackage.ResetToOriginalHookData();
 
 			SetAllFiles();
-			GetConfig();
 			SetFilters();
 
 			_uploadDirectory = TempDirectory.CreateSubdirectory(SourceDirectory.Name);
@@ -58,82 +60,41 @@ namespace PublisherPlus.Data
 		}
 
 		#region Serialization
-		[XmlAttribute("Title")]
-		public string Title { get; set; }
-		[XmlAttribute("Description")]
-		public string Description { get; set; }
-		[XmlAttribute("Tags")]
-		public List<string> Tags { get; set; }
-		[XmlArray("SupportedVersions"), XmlArrayItem(typeof(Version), ElementName = "Version")]
-		public IEnumerable<Version> SupportedVersions { get; set; }
-		[XmlAttribute("PreviewFile")]
-		private FileInfo _previewFile;
-		public string Preview
-		{
-			get => _previewFile.FullName;
-			set
-			{
-				if(_previewFile?.FullName == value)
-				{
-					return;
-				}
-				_previewFile = new FileInfo(value);
-			}
-		}
-
-		XmlSerializer serializer = new XmlSerializer(typeof(ManagedWorkshopPackage));
-		private void GetConfig()
+		readonly XmlSerializer serializer = new XmlSerializer(typeof(SerializedData));
+		private void LoadFromConfigFile()
 		{
 			string configFile = Path.Combine(SourceDirectory.FullName, ConfigFileName);
 			if(!File.Exists(configFile))
 			{
+				SerializedData = new SerializedData();
 				return;
 			}
 
-			FileStream fileStream = new FileStream(configFile, FileMode.OpenOrCreate);
-			ManagedWorkshopPackage package = (ManagedWorkshopPackage)serializer.Deserialize(fileStream);
-
+			FileStream fileStream = new FileStream(configFile, FileMode.Open);
+			SerializedData = (SerializedData)serializer.Deserialize(fileStream);
 		}
 
-		private void CopyFromWorkshopPackage(ManagedWorkshopPackage other)
-		{
-
-		}
-
-		public void SaveConfig()
+		public void SaveToConfigFile()
 		{
 			string configFile = Path.Combine(SourceDirectory.FullName, ConfigFileName);
 
 			FileStream fileStream = new FileStream(configFile, FileMode.OpenOrCreate);
-			serializer.Serialize(fileStream, this);
+			serializer.Serialize(fileStream, SerializedData);
 		}
 
 		public void ResetConfig()
 		{
-			CopyMetadataFromHook();
+			UploadablePackage.ResetToOriginalHookData();
 			SetAllFiles();
 		}
 
 		#endregion
-		public bool PreviewExists => _previewFile.ExistsNow();
+		public bool PreviewExists => UploadablePackage.PreviewFile.ExistsNow();
 		public bool IsNewCreation => publishedFileId == PublishedFileId_t.Invalid;
 
 		public DirectoryInfo SourceDirectory { get; private set; }
 
 		private readonly DirectoryInfo _uploadDirectory;
-		public bool useGitIgnore = false;
-
-
-
-		private void CopyMetadataFromHook()
-		{
-			Title = workshopItemHook.Name;
-			Description = workshopItemHook.Description;
-			Tags = workshopItemHook.Tags?.ToList() ?? new List<string>();
-			SupportedVersions = workshopItemHook.SupportedVersions.ToList();
-			Preview = workshopItemHook.PreviewImagePath;
-			SourceDirectory = new DirectoryInfo(workshopItemHook.Directory.FullName);
-		}
 
 		private void SetFilters()
 		{
@@ -146,9 +107,20 @@ namespace PublisherPlus.Data
 			};
 		}
 
-		public bool AllowsPublishing(FileSystemInfo item)
+		public bool AllowsPublishing(FileSystemInfo item, out string reason)
 		{
-			return filters.All(filter => filter.AllowsPublishing(item));
+			List<string> reasons = new List<string>();
+			bool isPublishingAllowed = true;
+			foreach(FileFilter filter in filters)
+			{
+				if(!filter.AllowsPublishing(item))
+				{
+					isPublishingAllowed = false;
+					reasons.Add(filter.FilterReason);
+				}
+			}
+			reason = reasons.Any() ? String.Join(", ", reasons) : null;
+			return isPublishingAllowed;
 		}
 
 		/// <summary>
@@ -176,12 +148,12 @@ namespace PublisherPlus.Data
 		{
 			if(!PreviewExists)
 			{
-				Preview = workshopItemHook.PreviewImagePath;
+				UploadablePackage.PreviewFilePath = workshopItemHook.PreviewImagePath;
 			}
 
 			foreach(FileSystemInfo file in AllFiles)
 			{
-				if(!AllowsPublishing(file))
+				if(!AllowsPublishing(file, out _))
 				{
 					continue;
 				}
@@ -215,7 +187,7 @@ namespace PublisherPlus.Data
 			}
 		}
 
-		public void Upload()
+		public void UploadToWorkshop()
 		{
 			if(_current == this)
 			{
@@ -226,7 +198,7 @@ namespace PublisherPlus.Data
 
 			PrepareTempFolder();
 
-			Access.Method_Verse_Steam_Workshop_Upload_Call(this);
+			Access.Method_Verse_Steam_Workshop_Upload_Call(UploadablePackage);
 		}
 
 		public static void OnUploaded()
@@ -236,26 +208,18 @@ namespace PublisherPlus.Data
 				return;
 			}
 
-			Startup.Log($"Finished uploading '{_current.Title}'");
+			Startup.Log($"Finished uploading '{_current.UploadablePackage.Title}'");
 
 			_current = null;
 			TempDirectory.Delete(true);
 		}
 
 		#region IWorkshopUploadable
-		public string GetWorkshopName() => Title;
-		public string GetWorkshopDescription() => Description;
-		public IList<string> GetWorkshopTags() => Tags;
-		public bool CanToUploadToWorkshop() => true;
-		public PublishedFileId_t GetPublishedFileId() => publishedFileId;
 		public void SetPublishedFileId(PublishedFileId_t pfid)
 		{
 			publishedFileId = pfid;
 			TrackPublishedIdFile();
 		}
-		public WorkshopItemHook GetWorkshopItemHook() => new WorkshopItemHook(this);
-		public string GetWorkshopPreviewImagePath() => Preview;
-		public DirectoryInfo GetWorkshopUploadDirectory() => _uploadDirectory;
 		public void PrepareForWorkshopUpload() { }
 
 		private void TrackPublishedIdFile()
