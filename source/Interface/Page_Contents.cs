@@ -44,7 +44,7 @@ namespace PublisherPlus.Interface
 				checkboxRect = rowRect.LeftPartPixels(rowRect.width - buttonRect.width);
 				if(Widgets.ButtonText(buttonRect, parseLabel))
 				{
-					package.ParseGitIgnore();
+					package.gitIgnoreFilter.ParseGitIgnore();
 				}
 			}
 			else
@@ -55,7 +55,7 @@ namespace PublisherPlus.Interface
 			Widgets.CheckboxLabeled(checkboxRect, Language.Get("Settings.GitIgnore"), ref package.useGitIgnore);
 			if(previousValue == false && package.useGitIgnore)
 			{
-				package.ParseGitIgnore();
+				package.gitIgnoreFilter.ParseGitIgnore();
 			}
 		}
 
@@ -64,7 +64,7 @@ namespace PublisherPlus.Interface
 			Listing_Standard list = new Listing_Standard();
 
 			float entryHeight = Text.LineHeight + list.verticalSpacing;
-			int listingCount = package.AllContent.Count();
+			int listingCount = package.AllFiles.Count();
 			const float sliderWidth = 20f;
 			Rect scrollRect = new Rect(0f, 0f, inRect.width - sliderWidth, listingCount * entryHeight);
 
@@ -80,7 +80,7 @@ namespace PublisherPlus.Interface
 			{
 				for(int i = startIndex; i < endIndex; i++)
 				{
-					FileSystemInfo item = package.AllContent.ElementAt(i);
+					FileSystemInfo item = package.AllFiles.ElementAt(i);
 					DoFileEntry(list, item);
 				}
 			}
@@ -94,20 +94,18 @@ namespace PublisherPlus.Interface
 			string path = package.GetRelativePath(file);
 			path = file.IsDirectory() ? path.Bold() : path;
 
-			bool isIncluded = package.IsIncluded(file);
-			bool include = isIncluded;
-			Color? color = isIncluded ? (Color?)null : Color.red;
+			bool isAllowed = package.AllowsPublishing(file);
+			bool allowFromFileTree = isAllowed;
+			Color? color = isAllowed ? (Color?)null : Color.red;
 
 			string fileLabel = package.GetRelativePath(file);
-			for(int i = 0; i < fileLabel.Count(c => c == Path.DirectorySeparatorChar); i++)
-			{
-				fileLabel = $"  {fileLabel}";
-			}
-			list.CheckboxLabeled(fileLabel, ref include, file.FullName, color);
+			int indentCount = fileLabel.Count(c => c == Path.DirectorySeparatorChar);
+			fileLabel = fileLabel.Indent(indentCount);
+			list.CheckboxLabeled(fileLabel, ref allowFromFileTree, file.FullName, color);
 
-			if(include != isIncluded)
+			if(allowFromFileTree != isAllowed)
 			{
-				package.SetIncluded(file, include);
+				package.fileTreeExclusionFilter.SetExcluded(file, allowFromFileTree);
 			}
 		}
 	}

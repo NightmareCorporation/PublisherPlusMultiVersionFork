@@ -1,11 +1,9 @@
-﻿using GitignoreParserNet;
-using PublisherPlus.Patch;
+﻿using PublisherPlus.Patch;
 using Steamworks;
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Xml.Linq;
 using Verse;
 using Verse.Steam;
@@ -23,14 +21,18 @@ namespace PublisherPlus.Data
 		private const string TempFolderName = "PublisherPlus\\Temp";
 		private const string ConfigFileName = "_PublisherPlus.xml";
 		private const string PublishedFileIdFilePath = "About\\PublishedFileId.txt";
-		private const string GitIgnoreName = ".gitignore";
 
 		private static readonly DirectoryInfo TempDirectory = new DirectoryInfo(Path.Combine(GenFilePaths.ConfigFolderPath, TempFolderName));
 
 		private static WorkshopPackage _current;
 
 		private readonly WorkshopItemHook _hook;
-		private readonly Dictionary<FileSystemInfo, bool> uploadableItems = new Dictionary<FileSystemInfo, bool>();
+		private List<FileSystemInfo> allFiles = new List<FileSystemInfo>();
+		public IReadOnlyCollection<FileSystemInfo> AllFiles => allFiles;
+
+		private List<FileFilter> filters;
+		public FileFilter_GitIgnore gitIgnoreFilter;
+		public FileFilter_FileTreeExclusion fileTreeExclusionFilter;
 
 		private PublishedFileId_t _id;
 		public string Id => _id == PublishedFileId_t.Invalid ? Language.Get("NewFileId") : _id.ToString();
@@ -57,9 +59,6 @@ namespace PublisherPlus.Data
 		public bool IsNewCreation => _id == PublishedFileId_t.Invalid;
 
 		public DirectoryInfo SourceDirectory { get; private set; }
-		public IEnumerable<FileSystemInfo> AllContent => uploadableItems
-			.OrderByDescending(item => item.Value)
-			.Select(item => item.Key);
 
 		private readonly DirectoryInfo _uploadDirectory;
 		public bool useGitIgnore = false;
@@ -73,6 +72,7 @@ namespace PublisherPlus.Data
 
 			GetAllContent();
 			GetConfig();
+			SetFilters();
 
 			_uploadDirectory = TempDirectory.CreateSubdirectory(SourceDirectory.Name);
 			if(_uploadDirectory.ExistsNow())
@@ -92,20 +92,22 @@ namespace PublisherPlus.Data
 			SourceDirectory = new DirectoryInfo(_hook.Directory.FullName);
 		}
 
-		public bool IsIncluded(FileSystemInfo item) => !uploadableItems.ContainsKey(item) || uploadableItems[item]
-			&& IsAllowedByGitignore(item);
-
-		public void SetIncluded(FileSystemInfo item, bool value)
+		private void SetFilters()
 		{
-			uploadableItems[item] = value;
-			foreach(FileSystemInfo key in uploadableItems.Keys.ToArray())
+			gitIgnoreFilter = new FileFilter_GitIgnore(this);
+			fileTreeExclusionFilter = new FileFilter_FileTreeExclusion(this);
+			filters = new List<FileFilter>()
 			{
-				if(key.FullName.StartsWith(item.FullName))
-				{
-					uploadableItems[key] = value;
-				}
-			}
+				gitIgnoreFilter,
+				fileTreeExclusionFilter
+			};
 		}
+
+		public bool AllowsPublishing(FileSystemInfo item)
+		{
+			return filters.All(filter => filter.AllowsPublishing(item));
+		}
+
 
 		/// <summary>
 		/// Gets the path relative to the root <see cref="SourceDirectory">, if the item is a directory, appends a trailing slash
@@ -114,69 +116,22 @@ namespace PublisherPlus.Data
 		{
 			return item.FullName.Substring(SourceDirectory.FullName.Length + 1) + (item.IsDirectory() ? separator : "");
 		}
-		/// <summary>
-		/// Gets the relative path of <paramref name="item"/> to the given <paramref name="directory"/>.
-		/// Returns <see cref="null"/> if the given <paramref name="item"/> is not located within the given <paramref name="directory"/>.
-		/// </summary>
-		public string GetRelativePathTo(FileSystemInfo item, FileSystemInfo directory)
-		{
-			if(!item.FullName.Contains(directory.FullName))
-			{
-				return null;
-			}
-			return item.FullName.Replace(directory.FullName, "");
-		}
+
 
 		/// <summary>
 		/// Sets the <see cref="uploadableItems"/> dictionary to all files and directories in <see cref="SourceDirectory"/> (excluding <see cref="ConfigFileName"/>)
 		/// </summary>
 		private void GetAllContent()
 		{
-			IEnumerable<FileSystemInfo> contents = SourceDirectory.GetFileSystemInfos("*", SearchOption.AllDirectories)
+			allFiles.Clear();
+
+			allFiles = SourceDirectory.GetFileSystemInfos("*", SearchOption.AllDirectories)
 				.OrderBy(item => item.FullName)
-				.Where(item => item.Name != ConfigFileName);
-
-			uploadableItems.Clear();
-
-			foreach(FileSystemInfo path in contents)
-			{
-				uploadableItems.Add(path, true);
-			}
+				.Where(item => item.Name != ConfigFileName)
+				.ToList();
 		}
 
-		/// <summary>
-		/// There can be multiple .gitignore files located throughout a solution, each gitignore must apply its filters relative to the file location
-		/// </summary>
-		private Dictionary<FileSystemInfo, GitignoreParser> gitIgnoreParsers;
-		public void ParseGitIgnore()
-		{
-			gitIgnoreParsers = AllContent.Where(item => item.Name == GitIgnoreName)
-				.ToDictionary(file => file, file => new GitignoreParser(file.FullName, Encoding.UTF8));
-			if(gitIgnoreParsers.NullOrEmpty())
-			{
-				Startup.Error($"Could not find and parse any .gitignore files");
-			}
-			else
-			{
-				Startup.Log($"Parsed {gitIgnoreParsers.Count} .gitignore files located at: \n{String.Join("\n", gitIgnoreParsers.Keys)}");
-			}
-		}
-		private bool IsAllowedByGitignore(FileSystemInfo file)
-		{
-			if(!useGitIgnore)
-			{
-				return true;
-			}
-			if(gitIgnoreParsers.NullOrEmpty())
-			{
-				return true;
-			}
-			return gitIgnoreParsers.All(kvp =>
-			{
-				string relativePath = GetRelativePathTo(file, kvp.Key);
-				return relativePath == null || kvp.Value.Accepts(relativePath);
-			});
-		}
+
 
 		/// <summary>
 		/// Loads data from <see cref="ConfigFileName"/> and populates mod info and file exclusions
@@ -228,39 +183,17 @@ namespace PublisherPlus.Data
 			}
 
 			// find _items that match the loaded exclusion filters so that they can be exculded again
-			IEnumerable<FileSystemInfo> excludedPaths = uploadableItems.Keys
-				.ToList()
-				.Where(item => exclusions.Any(exclude => item.FullName.StartsWith(exclude, StringComparison.OrdinalIgnoreCase)));
+			//IEnumerable<FileSystemInfo> excludedPaths = uploadableItems.Keys
+			//	.ToList()
+			//	.Where(item => exclusions.Any(exclude => item.FullName.StartsWith(exclude, StringComparison.OrdinalIgnoreCase)));
 
-			foreach(FileSystemInfo path in excludedPaths)
-			{
-				uploadableItems[path] = false;
-			}
+			//foreach(FileSystemInfo path in excludedPaths)
+			//{
+			//	uploadableItems[path] = false;
+			//}
 		}
 
-		public bool HasContent() => uploadableItems.Any(item => item.Value);
-
-		private IEnumerable<FileSystemInfo> GetExcluded() => uploadableItems
-			.Where(item => !item.Value)
-			.Select(item => item.Key);
-
-		/// <summary>
-		/// Simplifies <see cref="GetExcluded"/> to remove unncessary branches
-		/// </summary>
-		private IEnumerable<string> GetExcludedPaths()
-		{
-			List<string> list = new List<string>();
-			foreach(string path in GetExcluded().Select(GetRelativePath).OrderBy(item => item))
-			{
-				if(list.Any(item => path.StartsWith(item)))
-				{
-					continue;
-				}
-				list.Add(path);
-			}
-
-			return list;
-		}
+		public bool HasContent() => allFiles.Any();
 
 		public void SaveConfig()
 		{
@@ -281,7 +214,7 @@ namespace PublisherPlus.Data
 			{
 				root.Add(new XElement("Preview", Preview));
 			}
-			root.Add(new XElement("Excluded", from item in GetExcludedPaths() select new XElement("exclude", item)));
+			//root.Add(new XElement("Excluded", from item in GetExcludedPaths() select new XElement("exclude", item)));
 
 			xml.Save(configFile);
 		}
@@ -292,23 +225,27 @@ namespace PublisherPlus.Data
 			GetAllContent();
 		}
 
-		private void Prepare()
+		private void PrepareTempFolder()
 		{
 			if(!PreviewExists)
 			{
 				Preview = _hook.PreviewImagePath;
 			}
 
-			foreach(KeyValuePair<FileSystemInfo, bool> item in uploadableItems.Where(item => item.Value))
+			foreach(FileSystemInfo file in allFiles)
 			{
-				string path = Path.Combine(_uploadDirectory.FullName, GetRelativePath(item.Key));
+				if(!AllowsPublishing(file))
+				{
+					continue;
+				}
+				string path = Path.Combine(_uploadDirectory.FullName, GetRelativePath(file));
 
-				if(item.Key is DirectoryInfo)
+				if(file is DirectoryInfo)
 				{
 					new DirectoryInfo(path).Create();
 				}
 
-				if(!(item.Key is FileInfo original))
+				if(!(file is FileInfo original))
 				{
 					continue;
 				}
@@ -340,7 +277,7 @@ namespace PublisherPlus.Data
 			}
 			_current = this;
 
-			Prepare();
+			PrepareTempFolder();
 
 			Access.Method_Verse_Steam_Workshop_Upload_Call(this);
 		}
@@ -379,11 +316,11 @@ namespace PublisherPlus.Data
 			FileInfo file = new FileInfo(Path.Combine(SourceDirectory.FullName, PublishedFileIdFilePath));
 			_hook.PublishedFileId = _id;
 
-			if(uploadableItems.Keys.Any(item => item.FullName == file.FullName))
+			if(allFiles.Contains(file))
 			{
 				return;
 			}
-			uploadableItems.Add(file, true);
+			allFiles.Add(file);
 		}
 		#endregion
 
