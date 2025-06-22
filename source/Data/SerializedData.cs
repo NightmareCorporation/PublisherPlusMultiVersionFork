@@ -2,6 +2,7 @@
 using System.IO;
 using System.Linq;
 using System.Xml.Serialization;
+using Verse;
 
 namespace PublisherPlus.Data
 {
@@ -11,31 +12,27 @@ namespace PublisherPlus.Data
 		[XmlElement]
 		public UploadablePackage UploadablePackage = new UploadablePackage();
 		[XmlElement]
-		public FileFilter_FileTreeExclusionData FileTreeExclusions = new FileFilter_FileTreeExclusionData();
+		public FileFilter_FileTreeData FileTree = new FileFilter_FileTreeData();
 		[XmlElement]
 		public FileFilter_GitIgnoreData GitIgnore = new FileFilter_GitIgnoreData();
 	}
 
-	public class FileFilter_FileTreeExclusionData
+	public class FileFilter_FileTreeData
 	{
 		[XmlArray, XmlArrayItem(typeof(string), ElementName = "Path")]
-		public List<string> ExcludedFilePaths
+		public HashSet<string> ExcludedFilePaths { get; set; }
+
+		private FileSystemInfo ToInfo(string path)
 		{
-			get => ExcludedFiles.Select(f => f.FullName).ToList();
-			set => ExcludedFiles = value.Select(path =>
+			if(File.Exists(path))
 			{
-				if(File.Exists(path))
-				{
-					return new FileInfo(path) as FileSystemInfo;
-				}
-				else
-				{
-					return new DirectoryInfo(path) as FileSystemInfo;
-				}
-			}).ToList();
+				return new FileInfo(path);
+			}
+			else
+			{
+				return new DirectoryInfo(path);
+			}
 		}
-		[XmlIgnore]
-		public List<FileSystemInfo> ExcludedFiles = new List<FileSystemInfo>();
 	}
 
 	public class FileFilter_GitIgnoreData

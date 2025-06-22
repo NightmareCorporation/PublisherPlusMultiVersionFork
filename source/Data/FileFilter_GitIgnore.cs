@@ -53,16 +53,8 @@ namespace PublisherPlus.Data
 
 		public void ParseGitIgnore()
 		{
-			gitIgnoreParsers = package.AllFiles.Where(item => item.Name == GitIgnoreName)
-				.ToDictionary(file => file, file => new GitignoreParser(file.FullName, Encoding.UTF8));
-			if(gitIgnoreParsers.NullOrEmpty())
-			{
-				Startup.Error($"Could not find and parse any .gitignore files");
-			}
-			else
-			{
-				Startup.Log($"Parsed {gitIgnoreParsers.Count} .gitignore files located at: \n{String.Join("\n", gitIgnoreParsers.Keys)}");
-			}
+			//gitIgnoreParsers = package.AllFiles.Where(item => item.Name == GitIgnoreName)
+			//	.ToDictionary(file => file, file => new GitignoreParser(file.FullName, Encoding.UTF8));
 		}
 	}
 }

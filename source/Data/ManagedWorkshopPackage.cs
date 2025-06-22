@@ -28,26 +28,23 @@ namespace PublisherPlus.Data
 		public bool IsNewCreation => SerializedData.UploadablePackage.PublishedFileId == PublishedFileId_t.Invalid;
 
 		private readonly WorkshopItemHook workshopItemHook;
-		private List<FileSystemInfo> allFiles = new List<FileSystemInfo>();
-		public IReadOnlyCollection<FileSystemInfo> AllFiles => allFiles;
 
 		private List<IFileFilter> filters;
 		public FileFilter_GitIgnore gitIgnoreFilter;
-		public FileFilter_FileTreeExclusion fileTreeExclusionFilter;
+		public FileFilter_FileTree fileTreeFilter;
 
 		public ManagedWorkshopPackage(WorkshopItemHook hook)
 		{
 			workshopItemHook = hook;
-			SourceDirectory = hook.Directory;
+			ModRootDirectory = hook.Directory;
 
-			LoadFromConfigFile();
+            SetFilters();
+
+            LoadFromConfigFile();
 			UploadablePackage.OriginalPackageHook = hook;
 			UploadablePackage.ResetToOriginalHookData();
 
-			SetAllFiles();
-			SetFilters();
-
-			_uploadDirectory = TempDirectory.CreateSubdirectory(SourceDirectory.Name);
+			_uploadDirectory = TempDirectory.CreateSubdirectory(ModRootDirectory.Name);
 			if(_uploadDirectory.ExistsNow())
 			{
 				_uploadDirectory.Delete(true);
@@ -59,7 +56,7 @@ namespace PublisherPlus.Data
 		readonly XmlSerializer serializer = new XmlSerializer(typeof(SerializedData));
 		private void LoadFromConfigFile()
 		{
-			string configFile = Path.Combine(SourceDirectory.FullName, ConfigFileName);
+			string configFile = Path.Combine(ModRootDirectory.FullName, ConfigFileName);
 			if(!File.Exists(configFile))
 			{
 				SerializedData = new SerializedData();
@@ -68,14 +65,16 @@ namespace PublisherPlus.Data
 
 			FileStream fileStream = new FileStream(configFile, FileMode.Open);
 			SerializedData = (SerializedData)serializer.Deserialize(fileStream);
+			fileTreeFilter.ExcludedPaths = SerializedData.FileTree.ExcludedFilePaths;
 		}
 
 		public void SaveToConfigFile()
 		{
-			string configFile = Path.Combine(SourceDirectory.FullName, ConfigFileName);
+			string configFile = Path.Combine(ModRootDirectory.FullName, ConfigFileName);
 
-			FileStream fileStream = new FileStream(configFile, FileMode.OpenOrCreate);
-			serializer.Serialize(fileStream, SerializedData);
+            SerializedData.FileTree.ExcludedFilePaths = fileTreeFilter.ExcludedPaths;
+            FileStream fileStream = new FileStream(configFile, FileMode.Create);	// using Create overwrites already existing content in the file. CreateOrOpen can lead to "trailing" old data at the end of the newly written data
+            serializer.Serialize(fileStream, SerializedData);
 		}
 
 		public void ResetConfig()
@@ -88,18 +87,18 @@ namespace PublisherPlus.Data
 
 		public bool PreviewExists => UploadablePackage.PreviewFile.ExistsNow();
 
-		public DirectoryInfo SourceDirectory { get; private set; }
+		public DirectoryInfo ModRootDirectory { get; private set; }
 
 		private readonly DirectoryInfo _uploadDirectory;
 
 		private void SetFilters()
 		{
 			gitIgnoreFilter = new FileFilter_GitIgnore();
-			fileTreeExclusionFilter = new FileFilter_FileTreeExclusion();
+			fileTreeFilter = new FileFilter_FileTree();
 			filters = new List<IFileFilter>()
 			{
 				gitIgnoreFilter,
-				fileTreeExclusionFilter,
+				fileTreeFilter,
 			};
 			filters.ForEach(filter => filter.SetWorkshopPackage(this));
 		}
@@ -124,23 +123,10 @@ namespace PublisherPlus.Data
 			return isPublishingAllowed;
 		}
 
-		public string GetRelativePath(FileSystemInfo item)
+		public void SetAllFiles()
 		{
-			return item.FullName.Substring(SourceDirectory.FullName.Length + 1);
+			fileTreeFilter.Reset();
 		}
-
-		private void SetAllFiles()
-		{
-			allFiles.Clear();
-
-			allFiles = SourceDirectory.GetFileSystemInfos("*", SearchOption.AllDirectories)
-				.OrderBy(item => item.FullName)
-				.Where(item => item.Name != ConfigFileName)
-				.ToList();
-		}
-
-
-		public bool HasContent() => AllFiles.Any();
 
 		private void PrepareTempFolder()
 		{
@@ -149,40 +135,40 @@ namespace PublisherPlus.Data
 				UploadablePackage.PreviewFilePath = workshopItemHook.PreviewImagePath;
 			}
 
-			foreach(FileSystemInfo file in AllFiles)
-			{
-				if(!AllowsPublishing(file, out _))
-				{
-					continue;
-				}
-				string path = Path.Combine(_uploadDirectory.FullName, GetRelativePath(file));
+			//foreach(FileSystemInfo file in AllFiles)
+			//{
+			//	if(!AllowsPublishing(file, out _))
+			//	{
+			//		continue;
+			//	}
+			//	string path = Path.Combine(_uploadDirectory.FullName, GetRelativePathToModRoot(file));
 
-				if(file is DirectoryInfo)
-				{
-					new DirectoryInfo(path).Create();
-				}
+			//	if(file is DirectoryInfo)
+			//	{
+			//		new DirectoryInfo(path).Create();
+			//	}
 
-				if(!(file is FileInfo original))
-				{
-					continue;
-				}
+			//	if(!(file is FileInfo original))
+			//	{
+			//		continue;
+			//	}
 
-				try
-				{
-					FileInfo destination = new FileInfo(path);
-					if(destination.Directory == null)
-					{
-						throw new Startup.Exception("Destination directory is null");
-					}
-					destination.Directory.Create();
-					original.CopyTo(destination.FullName);
-				}
-				catch(Exception e)
-				{
-					string message = $"Skipping package file '{original.FullName}' due to error: {e.Message}";
-					Startup.Warning(message);
-				}
-			}
+			//	try
+			//	{
+			//		FileInfo destination = new FileInfo(path);
+			//		if(destination.Directory == null)
+			//		{
+			//			throw new Startup.Exception("Destination directory is null");
+			//		}
+			//		destination.Directory.Create();
+			//		original.CopyTo(destination.FullName);
+			//	}
+			//	catch(Exception e)
+			//	{
+			//		string message = $"Skipping package file '{original.FullName}' due to error: {e.Message}";
+			//		Startup.Warning(message);
+			//	}
+			//}
 		}
 
 		public void UploadToWorkshop()

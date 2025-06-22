@@ -27,10 +27,16 @@
   <PublisherPlus.GitIgnore.Info.NoGitIgnoreFound>No .gitignore files found</PublisherPlus.GitIgnore.Info.NoGitIgnoreFound>
   <PublisherPlus.GitIgnore.Info.GitIgnores>{0} .gitignore files found:\n\n{1}</PublisherPlus.GitIgnore.Info.GitIgnores>
   
-  <!-- Settings -->
+  <PublisherPlus.Expand>Click to expand</PublisherPlus.Expand>
+  <PublisherPlus.Collapse>Click to collapse</PublisherPlus.Collapse>
+  <PublisherPlus.Include>Click to allow file to be uploaded to workshop</PublisherPlus.Include>
+  <PublisherPlus.Exclude>Click to prevent file from being uploaded to workshop</PublisherPlus.Exclude>
+
   <PublisherPlus.Settings.Title>Publisher Plus</PublisherPlus.Settings.Title>
-  <PublisherPlus.Settings.GitIgnore>Use gitignore file</PublisherPlus.Settings.GitIgnore>
-  <PublisherPlus.Settings.ParseGitIgnore>Parse .gitignore</PublisherPlus.Settings.ParseGitIgnore>
-  <PublisherPlus.Settings.GitIgnore.Tooltip>If the mod directory contains a .gitignore file, it will be used to filter files/ folders before uploading to the workshop (items matched by the ignore file will not be listed in the mod contents dialogue prior to upload). </PublisherPlus.Settings.GitIgnore.Tooltip>
-  
+  <PublisherPlus.Settings.UseRelativePathToParent>Use relative path to parent</PublisherPlus.Settings.UseRelativePathToParent>
+  <PublisherPlus.Settings.UseRelativePathToParent.Tip>Display just the file / folder name instead of the full path relative to the mods root directory</PublisherPlus.Settings.UseRelativePathToParent.Tip>
+  <PublisherPlus.Settings.ShowFileSize>Show file/directory size in file tree</PublisherPlus.Settings.ShowFileSize>
+  <PublisherPlus.Settings.IndentButtonsWithTree>Indent buttons with file tree depth</PublisherPlus.Settings.IndentButtonsWithTree>
+  <PublisherPlus.Settings.IndentButtonsWithTree.Tip>Moves the buttons in accordance to the file entries directory depth. If you want to have a "vertical line" of buttons all stacked neatly on top of each other instead of relatively positioned buttons, disable this</PublisherPlus.Settings.IndentButtonsWithTree.Tip>
+
 </LanguageData>

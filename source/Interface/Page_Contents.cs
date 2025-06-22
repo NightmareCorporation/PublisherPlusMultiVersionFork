@@ -1,10 +1,10 @@
 ﻿using PublisherPlus.Data;
-using System;
-using System.Collections.Generic;
+using RimWorld;
 using System.IO;
 using System.Linq;
 using UnityEngine;
 using Verse;
+using Verse.Sound;
 
 namespace PublisherPlus.Interface
 {
@@ -22,9 +22,13 @@ namespace PublisherPlus.Interface
 			list.Begin(inRect);
 
 			DoGitIgnoreControl(list);
+			if(list.ButtonText("Refetch"))
+			{
+				package.SetAllFiles();
+			}
 			list.Gap();
 			list.Label(Language.Get("ContentDirectory").Bold());
-			list.Label(package.SourceDirectory.FullName.Italic());
+			list.Label(package.ModRootDirectory.FullName.Italic());
 			list.GapLine();
 
 			Rect fileListRect = list.GetRect(inRect.height - list.CurHeight);
@@ -48,6 +52,7 @@ namespace PublisherPlus.Interface
 				if(Widgets.ButtonText(buttonRect, parseLabel))
 				{
 					package.gitIgnoreFilter.ParseGitIgnore();
+					SoundDefOf.Click.PlayOneShotOnCamera();
 				}
 
 				Rect infoIconRect = rowRect.RightPartPixels(Text.LineHeight);
@@ -75,60 +80,17 @@ namespace PublisherPlus.Interface
 			Listing_Standard list = new Listing_Standard();
 
 			float entryHeight = Text.LineHeight + list.verticalSpacing;
-			int listingCount = package.AllFiles.Count();
+			int listingCount = 9999;
 			const float sliderWidth = 20f;
 			Rect scrollRect = new Rect(0f, 0f, inRect.width - sliderWidth, listingCount * entryHeight);
 
 			Widgets.BeginScrollView(inRect, ref scrollPos, scrollRect);
-			list.Begin(new Rect(0, scrollPos.y, scrollRect.width, inRect.height));
+			list.Begin(scrollRect);
 
-			// only drawing the range of entries that are currently "visible" prevents UI lag from massive file lists
-			int startIndex = (int)(scrollPos.y / entryHeight);
-			int indexRange = Math.Min((int)(inRect.height / entryHeight) + 1, listingCount);
-			int endIndex = startIndex + indexRange;
-
-
-			if(startIndex >= 0 && endIndex <= listingCount)
-			{
-				IReadOnlyCollection<FileSystemInfo> files = package.AllFiles
-					.OrderByDescending(f => package.AllowsPublishing(f, out _))
-					.Skip(startIndex)
-					.Take(indexRange)
-					.ToList();
-
-				foreach(FileSystemInfo item in files)
-				{
-					DoFileEntry(list, item);
-				}
-			}
+			package.fileTreeFilter.root.TryDraw(list);
 
 			list.End();
 			Widgets.EndScrollView();
-		}
-
-		private void DoFileEntry(Listing_Standard list, FileSystemInfo file)
-		{
-			string fileLabel = package.GetRelativePath(file);
-			fileLabel = file.IsDirectory() ? fileLabel.Bold() : fileLabel;
-			int indentCount = fileLabel.Count(c => c == Path.DirectorySeparatorChar);
-			fileLabel = fileLabel.Indent(indentCount);
-
-			bool canPublishFile = package.AllowsPublishing(file, out string reason);
-			bool isIncludedByTreeFilter = package.fileTreeExclusionFilter.AllowsPublishing(file);
-			Color? color = canPublishFile ? (Color?)null : Color.red;
-
-			string tooltip = file.FullName;
-			if(reason != null)
-			{
-				tooltip += $"\n\n{Language.Get("FileNotAllowedToPublishReason", reason)}";
-			}
-
-			bool previousIncludedByTreeFilter = isIncludedByTreeFilter;
-			list.CheckboxLabeled(fileLabel, ref isIncludedByTreeFilter, tooltip, color);
-			if(isIncludedByTreeFilter != previousIncludedByTreeFilter)
-			{
-				package.fileTreeExclusionFilter.SetExcluded(file, !isIncludedByTreeFilter);
-			}
 		}
 	}
 }
