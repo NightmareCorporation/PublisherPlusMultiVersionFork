@@ -1,7 +1,5 @@
 ﻿using PublisherPlus.Data;
 using RimWorld;
-using System.IO;
-using System.Linq;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
@@ -69,7 +67,7 @@ namespace PublisherPlus.Interface
 			}
 			bool previousValue = useGitIgnore;
 			Widgets.CheckboxLabeled(checkboxRect, Language.Get("GitIgnore.UseGitIgnore"), ref package.SerializedData.GitIgnore.UseGitIgnore);
-			if(previousValue == false && useGitIgnore)
+			if(previousValue == false && package.SerializedData.GitIgnore.UseGitIgnore)
 			{
 				package.gitIgnoreFilter.ParseGitIgnore();
 			}

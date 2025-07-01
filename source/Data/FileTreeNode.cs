@@ -21,6 +21,7 @@ namespace PublisherPlus.Data
 		string label;
 		public List<FileTreeNode> children = new List<FileTreeNode>();
 		HashSet<FileInfo> filesInThisNode = new HashSet<FileInfo>();
+		public HashSet<FileInfo> FilesInThisNode => filesInThisNode;
 		int depth = 0;
 		bool isExpanded = true;
 

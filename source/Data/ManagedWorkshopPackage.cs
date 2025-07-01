@@ -38,9 +38,9 @@ namespace PublisherPlus.Data
 			workshopItemHook = hook;
 			ModRootDirectory = hook.Directory;
 
-            SetFilters();
+			SetFilters();
 
-            LoadFromConfigFile();
+			LoadFromConfigFile();
 			UploadablePackage.OriginalPackageHook = hook;
 			UploadablePackage.ResetToOriginalHookData();
 
@@ -72,9 +72,9 @@ namespace PublisherPlus.Data
 		{
 			string configFile = Path.Combine(ModRootDirectory.FullName, ConfigFileName);
 
-            SerializedData.FileTree.ExcludedFilePaths = fileTreeFilter.ExcludedPaths;
-            FileStream fileStream = new FileStream(configFile, FileMode.Create);	// using Create overwrites already existing content in the file. CreateOrOpen can lead to "trailing" old data at the end of the newly written data
-            serializer.Serialize(fileStream, SerializedData);
+			SerializedData.FileTree.ExcludedFilePaths = fileTreeFilter.ExcludedPaths;
+			FileStream fileStream = new FileStream(configFile, FileMode.Create);    // using Create overwrites already existing content in the file. CreateOrOpen can lead to "trailing" old data at the end of the newly written data
+			serializer.Serialize(fileStream, SerializedData);
 		}
 
 		public void ResetConfig()
@@ -86,6 +86,7 @@ namespace PublisherPlus.Data
 		#endregion
 
 		public bool PreviewExists => UploadablePackage.PreviewFile.ExistsNow();
+		public IEnumerable<FileInfo> AllFiles => fileTreeFilter.root.FilesInThisNode;
 
 		public DirectoryInfo ModRootDirectory { get; private set; }
 
@@ -93,12 +94,13 @@ namespace PublisherPlus.Data
 
 		private void SetFilters()
 		{
-			gitIgnoreFilter = new FileFilter_GitIgnore();
+			// file tree needs to init and set package first, as it provides the file list used by other filters
 			fileTreeFilter = new FileFilter_FileTree();
+			gitIgnoreFilter = new FileFilter_GitIgnore();
 			filters = new List<IFileFilter>()
 			{
-				gitIgnoreFilter,
 				fileTreeFilter,
+				gitIgnoreFilter,
 			};
 			filters.ForEach(filter => filter.SetWorkshopPackage(this));
 		}

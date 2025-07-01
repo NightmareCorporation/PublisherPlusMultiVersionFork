@@ -1,5 +1,4 @@
 ﻿using GitignoreParserNet;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -13,7 +12,7 @@ namespace PublisherPlus.Data
 		/// <summary>
 		/// There can be multiple .gitignore files located throughout a solution, each gitignore must apply its filters relative to the file location
 		/// </summary>
-		private Dictionary<FileSystemInfo, GitignoreParser> gitIgnoreParsers;
+		private Dictionary<FileInfo, GitignoreParser> gitIgnoreParsers;
 
 		private const string GitIgnoreName = ".gitignore";
 
@@ -22,14 +21,30 @@ namespace PublisherPlus.Data
 		public void SetWorkshopPackage(ManagedWorkshopPackage package)
 		{
 			this.package = package;
-			ParseGitIgnore();
 		}
 
 		public string FilterReason => ".gitignore";
 
-		public string GitIgnoreInfoText => gitIgnoreParsers.NullOrEmpty() ?
-			Language.Get("GitIgnore.Info.NoGitIgnoreFound") :
-			Language.Get("GitIgnore.Info.GitIgnores", gitIgnoreParsers.Count, String.Join("\n", gitIgnoreParsers.Keys.Select(key => key.FullName)));
+		private string _gitIgnoreInfoText;
+		public string GitIgnoreInfoText
+		{
+			get
+			{
+				if(_gitIgnoreInfoText == null)
+				{
+					if(gitIgnoreParsers.NullOrEmpty())
+					{
+						_gitIgnoreInfoText = Language.Get("GitIgnore.Info.NoGitIgnoreFound");
+					}
+					else
+					{
+						string formattedParsers = string.Join("\n", gitIgnoreParsers.Keys.Select(key => key.GetRelativePathTo(package.ModRootDirectory)));
+						_gitIgnoreInfoText = Language.Get("GitIgnore.Info.GitIgnores", gitIgnoreParsers.Count, formattedParsers);
+					}
+				}
+				return _gitIgnoreInfoText;
+			}
+		}
 
 		public bool AllowsPublishing(FileSystemInfo file)
 		{
@@ -37,11 +52,17 @@ namespace PublisherPlus.Data
 			{
 				return true;
 			}
-			return gitIgnoreParsers.All(kvp =>
+			return gitIgnoreParsers.Keys.All(parserFile => ParserAllows(parserFile, file));
+		}
+
+		private bool ParserAllows(FileInfo parserFile, FileSystemInfo info)
+		{
+			string relativePath = info.GetRelativePathTo(parserFile.Directory);
+			if(relativePath.NullOrEmpty())
 			{
-				string relativePath = file.GetRelativePathTo(kvp.Key);
-				return relativePath == null || kvp.Value.Accepts(relativePath);
-			});
+				return true;
+			}
+			return gitIgnoreParsers[parserFile].Accepts(relativePath);
 		}
 
 		public bool IsActive => package.SerializedData.GitIgnore.UseGitIgnore;
@@ -49,12 +70,14 @@ namespace PublisherPlus.Data
 		public void Reset()
 		{
 			package.SerializedData.GitIgnore.UseGitIgnore = false;
+			ParseGitIgnore();
 		}
 
 		public void ParseGitIgnore()
 		{
-			//gitIgnoreParsers = package.AllFiles.Where(item => item.Name == GitIgnoreName)
-			//	.ToDictionary(file => file, file => new GitignoreParser(file.FullName, Encoding.UTF8));
+			gitIgnoreParsers = package.AllFiles.Where(item => item.Name == GitIgnoreName)
+				.ToDictionary(file => file, file => new GitignoreParser(file.FullName, Encoding.UTF8));
+			_gitIgnoreInfoText = null;
 		}
 	}
 }
