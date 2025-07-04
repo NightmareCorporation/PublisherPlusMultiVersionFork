@@ -25,7 +25,13 @@
   <PublisherPlus.GitIgnore.UseGitIgnore>Use .gitignore filtering</PublisherPlus.GitIgnore.UseGitIgnore>
   <PublisherPlus.GitIgnore.ParseGitIgnore>Parse .gitignore now</PublisherPlus.GitIgnore.ParseGitIgnore>
   <PublisherPlus.GitIgnore.Info.NoGitIgnoreFound>No .gitignore files found</PublisherPlus.GitIgnore.Info.NoGitIgnoreFound>
-  <PublisherPlus.GitIgnore.Info.GitIgnores>{0} .gitignore files found:\n\n{1}</PublisherPlus.GitIgnore.Info.GitIgnores>
+  <PublisherPlus.GitIgnore.Info.GitIgnores>{0} .gitignore file(s)s found:\n\n{1}</PublisherPlus.GitIgnore.Info.GitIgnores>
+  
+  <PublisherPlus.Regex.UseRegexFilter>Use regex filtering</PublisherPlus.Regex.UseRegexFilter>
+  <PublisherPlus.Regex.OpenRegexWindow>Regex Window</PublisherPlus.Regex.OpenRegexWindow>
+  <PublisherPlus.Regex.Title>Regex Patterns</PublisherPlus.Regex.Title>
+  <PublisherPlus.Regex.Save>Save patterns</PublisherPlus.Regex.Save>
+  <PublisherPlus.Regex.LoadDefaults>Load default patterns</PublisherPlus.Regex.LoadDefaults>
   
   <PublisherPlus.Expand>Click to expand</PublisherPlus.Expand>
   <PublisherPlus.Collapse>Click to collapse</PublisherPlus.Collapse>

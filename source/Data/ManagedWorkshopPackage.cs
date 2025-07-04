@@ -32,6 +32,7 @@ namespace PublisherPlus.Data
 		private List<IFileFilter> filters;
 		public FileFilter_GitIgnore gitIgnoreFilter;
 		public FileFilter_FileTree fileTreeFilter;
+		public FileFilter_Regex regexFilter;
 
 		public ManagedWorkshopPackage(WorkshopItemHook hook)
 		{
@@ -65,7 +66,7 @@ namespace PublisherPlus.Data
 
 			FileStream fileStream = new FileStream(configFile, FileMode.Open);
 			SerializedData = (SerializedData)serializer.Deserialize(fileStream);
-			fileTreeFilter.ExcludedPaths = SerializedData.FileTree.ExcludedFilePaths;
+			SerializedData.FinishLoading(this);
 		}
 
 		public void SaveToConfigFile()
@@ -80,7 +81,7 @@ namespace PublisherPlus.Data
 		public void ResetConfig()
 		{
 			UploadablePackage.ResetToOriginalHookData();
-			SetAllFiles();
+			RefetchFiles();
 			filters.ForEach(filter => filter.Reset());
 		}
 		#endregion
@@ -97,10 +98,13 @@ namespace PublisherPlus.Data
 			// file tree needs to init and set package first, as it provides the file list used by other filters
 			fileTreeFilter = new FileFilter_FileTree();
 			gitIgnoreFilter = new FileFilter_GitIgnore();
+			regexFilter = new FileFilter_Regex();
+
 			filters = new List<IFileFilter>()
 			{
 				fileTreeFilter,
 				gitIgnoreFilter,
+				regexFilter,
 			};
 			filters.ForEach(filter => filter.SetWorkshopPackage(this));
 		}
@@ -125,9 +129,9 @@ namespace PublisherPlus.Data
 			return isPublishingAllowed;
 		}
 
-		public void SetAllFiles()
+		public void RefetchFiles()
 		{
-			fileTreeFilter.Reset();
+			fileTreeFilter.RefetchFiles();
 		}
 
 		private void PrepareTempFolder()

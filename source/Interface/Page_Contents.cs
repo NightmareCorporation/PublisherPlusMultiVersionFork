@@ -9,8 +9,12 @@ namespace PublisherPlus.Interface
 	public class Page_Contents : Page
 	{
 		private Vector2 scrollPos;
+		private readonly ControlRibbon controlRibbon;
 
-		public Page_Contents(ManagedWorkshopPackage package) : base(package) { }
+		public Page_Contents(ManagedWorkshopPackage package) : base(package)
+		{
+			controlRibbon = new ControlRibbon(package);
+		}
 
 		public override string Title => Language.Get("Title.Contents");
 
@@ -19,10 +23,12 @@ namespace PublisherPlus.Interface
 			Listing_Standard list = new Listing_Standard();
 			list.Begin(inRect);
 
-			DoGitIgnoreControl(list);
-			if(list.ButtonText("Refetch"))
+			controlRibbon.Draw(list.GetRect(Text.LineHeight));
+
+			if(list.ButtonText("Refetch files"))
 			{
-				package.SetAllFiles();
+				SoundDefOf.Click.PlayOneShotOnCamera();
+				package.RefetchFiles();
 			}
 			list.Gap();
 			list.Label(Language.Get("ContentDirectory").Bold());
@@ -35,43 +41,6 @@ namespace PublisherPlus.Interface
 			list.End();
 		}
 
-		private void DoGitIgnoreControl(Listing_Standard list)
-		{
-			Rect checkboxRect;
-			bool useGitIgnore = package.SerializedData.GitIgnore.UseGitIgnore;
-			if(useGitIgnore)
-			{
-				Rect rowRect = list.GetRect(Text.LineHeight);
-
-				string parseLabel = Language.Get("GitIgnore.ParseGitIgnore");
-				float buttonWidth = Text.CalcSize(parseLabel + "    ").x;
-				Rect buttonRect = rowRect.RightPartPixels(buttonWidth);
-				rowRect.xMax -= buttonRect.width;
-				if(Widgets.ButtonText(buttonRect, parseLabel))
-				{
-					package.gitIgnoreFilter.ParseGitIgnore();
-					SoundDefOf.Click.PlayOneShotOnCamera();
-				}
-
-				Rect infoIconRect = rowRect.RightPartPixels(Text.LineHeight);
-				rowRect.xMax -= infoIconRect.width;
-				Widgets.DrawTextureFitted(infoIconRect, TexButton.Info, 1);
-				string gitIgnoreInfoText = package.gitIgnoreFilter.GitIgnoreInfoText;
-				TooltipHandler.TipRegion(infoIconRect, gitIgnoreInfoText);
-
-				checkboxRect = rowRect;
-			}
-			else
-			{
-				checkboxRect = list.GetRect(Text.LineHeight);
-			}
-			bool previousValue = useGitIgnore;
-			Widgets.CheckboxLabeled(checkboxRect, Language.Get("GitIgnore.UseGitIgnore"), ref package.SerializedData.GitIgnore.UseGitIgnore);
-			if(previousValue == false && package.SerializedData.GitIgnore.UseGitIgnore)
-			{
-				package.gitIgnoreFilter.ParseGitIgnore();
-			}
-		}
 
 		private void DoFileList(Rect inRect)
 		{

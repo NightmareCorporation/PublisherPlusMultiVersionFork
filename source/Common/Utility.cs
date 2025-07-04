@@ -66,6 +66,7 @@ namespace PublisherPlus
 		}
 		#endregion
 
+		#region UI
 		public static void CheckboxLabeled(this Listing_Standard list, string label, ref bool checkOn, string tooltip, Color? color)
 		{
 			Color previousColor = GUI.color;
@@ -73,5 +74,6 @@ namespace PublisherPlus
 			list.CheckboxLabeled(label, ref checkOn, tooltip);
 			GUI.color = previousColor;
 		}
+		#endregion
 	}
 }

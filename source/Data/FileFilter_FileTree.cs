@@ -1,7 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using Verse;
 
 namespace PublisherPlus.Data
 {
@@ -27,10 +26,10 @@ namespace PublisherPlus.Data
 		{
 			get
 			{
-                return root.GetExcludedPaths()
+				return root.GetExcludedPaths()
 					.Select(p => p.FullName)
 					.ToHashSet();
-            }
+			}
 			set
 			{
 				Reset();
@@ -39,9 +38,19 @@ namespace PublisherPlus.Data
 		}
 
 		public void Reset()
-        {
-            root = new FileTreeNode(package.ModRootDirectory, null, package);
-            root.ApplyExcludedPaths(package.SerializedData.FileTree.ExcludedFilePaths);
-        }
+		{
+			root = new FileTreeNode(package.ModRootDirectory, null, package);
+			root.ApplyExcludedPaths(package.SerializedData.FileTree.ExcludedFilePaths);
+		}
+
+		public void RefetchFiles()
+		{
+			HashSet<string> previousList = root.GetExcludedPaths()
+				.Select(p => p.FullName)
+				.ToHashSet();
+			root = new FileTreeNode(package.ModRootDirectory, null, package);
+			root.ApplyExcludedPaths(previousList);
+
+		}
 	}
 }

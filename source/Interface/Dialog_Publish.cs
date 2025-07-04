@@ -55,8 +55,6 @@ namespace PublisherPlus.Interface
 
 		private void NextPage()
 		{
-			SoundDefOf.Tick_High.PlayOneShotOnCamera();
-
 			if(IsLastPage)
 			{
 				Upload();
@@ -69,8 +67,6 @@ namespace PublisherPlus.Interface
 
 		private void PreviousPage()
 		{
-			SoundDefOf.Tick_High.PlayOneShotOnCamera();
-
 			if(IsFirstPage)
 			{
 				Close();
@@ -114,22 +110,26 @@ namespace PublisherPlus.Interface
 			GridLayout grid = new GridLayout(inRect, 6);
 
 			string previousText = IsFirstPage ? Language.Get("Button.Close") : Language.Get("Button.Back");
-			if(WidgetsPlus.ButtonText(grid.GetCellRect(0, 0, 2), previousText))
+			if(Widgets.ButtonText(grid.GetCellRect(0, 0, 2), previousText))
 			{
 				PreviousPage();
+				SoundDefOf.Tick_High.PlayOneShotOnCamera();
 			}
-			if(WidgetsPlus.ButtonText(grid.GetCellRect(2, 0), Language.Get("Button.Default")))
+			if(Widgets.ButtonText(grid.GetCellRect(2, 0), Language.Get("Button.Default")))
 			{
 				package.ResetConfig();
+				SoundDefOf.Click.PlayOneShotOnCamera();
 			}
-			if(WidgetsPlus.ButtonText(grid.GetCellRect(3, 0), Language.Get("Button.Save")))
+			if(Widgets.ButtonText(grid.GetCellRect(3, 0), Language.Get("Button.Save")))
 			{
 				package.SaveToConfigFile();
+				SoundDefOf.Click.PlayOneShotOnCamera();
 			}
 			string nextText = IsLastPage ? Language.Get("Button.Publish") : Language.Get("Button.Next");
-			if(WidgetsPlus.ButtonText(grid.GetCellRect(4, 0, 2), nextText))
+			if(Widgets.ButtonText(grid.GetCellRect(4, 0, 2), nextText))
 			{
 				NextPage();
+				SoundDefOf.Tick_High.PlayOneShotOnCamera();
 			}
 		}
 
