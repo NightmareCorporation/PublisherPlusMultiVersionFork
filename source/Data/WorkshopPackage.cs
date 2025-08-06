@@ -13,9 +13,9 @@ namespace PublisherPlus.Data
 {
   internal class WorkshopPackage : WorkshopUploadable
   {
-    private const string TempFolderName = "PublisherPlus\\Temp";
-    private const string ConfigFileName = "_PublisherPlus.xml";
-    private const string PublishedFileIdFilePath = "About\\PublishedFileId.txt";
+    private static readonly string TempFolderName = Path.Combine("PublisherPlus", "Temp");
+    private static readonly string ConfigFileName = "_PublisherPlus.xml";
+    private static readonly string PublishedFileIdFilePath = Path.Combine("About", "PublishedFileId.txt");
 
     private static readonly DirectoryInfo TempDirectory = new DirectoryInfo(Path.Combine(GenFilePaths.ConfigFolderPath, TempFolderName));
 
