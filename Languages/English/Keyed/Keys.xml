@@ -45,4 +45,10 @@
   <PublisherPlus.Settings.IndentButtonsWithTree>Indent buttons with file tree depth</PublisherPlus.Settings.IndentButtonsWithTree>
   <PublisherPlus.Settings.IndentButtonsWithTree.Tip>Moves the buttons in accordance to the file entries directory depth. If you want to have a "vertical line" of buttons all stacked neatly on top of each other instead of relatively positioned buttons, disable this</PublisherPlus.Settings.IndentButtonsWithTree.Tip>
 
+  <PublisherPlus.Settings.CurrentTempPath>Current temp path: {0}</PublisherPlus.Settings.CurrentTempPath>
+  <PublisherPlus.Settings.Save>Save</PublisherPlus.Settings.Save>
+  <PublisherPlus.Settings.Reset>Reset</PublisherPlus.Settings.Reset>
+  <PublisherPlus.Settings.FolderDoesNotExist>Folder does not exist</PublisherPlus.Settings.FolderDoesNotExist>
+  <PublisherPlus.Settings.FolderDoesNotExist.CreateFolder>Create folder</PublisherPlus.Settings.FolderDoesNotExist.CreateFolder>
+  <PublisherPlus.Settings.Cancel>Cancel</PublisherPlus.Settings.Cancel>
 </LanguageData>
