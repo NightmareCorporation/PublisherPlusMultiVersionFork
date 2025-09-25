@@ -27,7 +27,7 @@ namespace PublisherPlus.Compatibility
 
         public static bool WorkshopUploadPrefix(ModMetaData mod)
         {
-            Find.WindowStack.Add(new Dialog_ConfirmModUpload(mod, () => Find.WindowStack.Add(new Dialog_Publish(mod.GetWorkshopItemHook()))));
+            Find.WindowStack.Add(new Dialog_ConfirmModUpload(mod, () => Find.WindowStack.Add(new Dialog_Publish(mod))));
             return false;
         }
     }

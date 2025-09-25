@@ -14,7 +14,7 @@ namespace PublisherPlus.Interface
             Verse.Listing_Standard list = new Verse.Listing_Standard();
             list.Begin(inRect);
             list.Gap();
-            list.Label(Language.Get("FinalInformation", package.UploadablePackage.Title.Bold(), package.SerializedData.UploadablePackage.ReadablePublishedFileId.Bold()));
+            list.Label(Language.Get("FinalInformation", package.metaData.Name.Bold(), package.HumanReadablePackageId.Bold()));
             list.End();
         }
     }

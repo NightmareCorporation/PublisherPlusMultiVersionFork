@@ -15,7 +15,7 @@ namespace PublisherPlus.Patch
         private static void Postfix(ref Dialog_ConfirmModUpload __instance, ModMetaData ___mod)
         {
             __instance.optionalTitle = Startup.Name.Colorize(TitleColor).Bold();
-            void Action() => Find.WindowStack.Add(new Dialog_Publish(___mod.GetWorkshopItemHook()));
+            void Action() => Find.WindowStack.Add(new Dialog_Publish(___mod));
 
             __instance.buttonAAction = Action;
             __instance.acceptAction = Action;

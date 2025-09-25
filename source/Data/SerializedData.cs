@@ -7,8 +7,6 @@ namespace PublisherPlus.Data
     public class SerializedData
     {
         [XmlElement]
-        public UploadablePackage UploadablePackage = new UploadablePackage();
-        [XmlElement]
         public FileFilter_FileTreeData FileTree = new FileFilter_FileTreeData();
         [XmlElement]
         public FileFilter_GitIgnoreData GitIgnore = new FileFilter_GitIgnoreData();

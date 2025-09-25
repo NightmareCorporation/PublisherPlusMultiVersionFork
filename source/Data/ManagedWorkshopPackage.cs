@@ -4,6 +4,7 @@ using Steamworks;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.IO.Enumeration;
 using System.Linq;
 using System.Xml.Serialization;
 using Verse;
@@ -17,15 +18,15 @@ namespace PublisherPlus.Data
     public class ManagedWorkshopPackage
     {
         public static readonly string separator = Path.DirectorySeparatorChar.ToString();
+        public bool isNewCreation = false;
 
         private const string TempFolderName = "PublisherPlus\\Temp";
         private const string ConfigFileName = "_PublisherPlusV2.xml";
 
         private static ManagedWorkshopPackage _current;
         public SerializedData SerializedData { get; set; }
-        public UploadablePackage UploadablePackage => SerializedData.UploadablePackage;
-        public bool IsNewCreation => SerializedData.UploadablePackage.PublishedFileId == PublishedFileId_t.Invalid;
 
+        public readonly ModMetaData metaData;
         private readonly WorkshopItemHook workshopItemHook;
 
         private List<IFileFilter> filters;
@@ -33,16 +34,19 @@ namespace PublisherPlus.Data
         public FileFilter_FileTree fileTreeFilter;
         public FileFilter_Regex regexFilter;
 
-        public ManagedWorkshopPackage(WorkshopItemHook hook)
+        public string HumanReadablePackageId => metaData.GetPublishedFileId() == PublishedFileId_t.Invalid ? "-" : metaData.GetPublishedFileId().ToString();
+
+        public ManagedWorkshopPackage(ModMetaData metaData)
         {
+            this.metaData = metaData;
+            
+            WorkshopItemHook hook = metaData.GetWorkshopItemHook();
             workshopItemHook = hook;
             ModRootDirectory = hook.Directory;
 
             SetFilters();
 
             LoadFromConfigFile();
-            UploadablePackage.OriginalPackageHook = hook;
-            UploadablePackage.ResetToOriginalHookData();
         }
 
         #region Serialization
@@ -72,14 +76,12 @@ namespace PublisherPlus.Data
 
         public void ResetConfig()
         {
-            UploadablePackage.ResetToOriginalHookData();
             RefetchFiles();
             filters.ForEach(filter => filter.Reset());
         }
         #endregion
 
-        public bool PreviewExists => UploadablePackage.PreviewFile.ExistsNow();
-        public IEnumerable<FileInfo> AllFiles => UploadableFiles;
+        public IEnumerable<FileInfo> AllFiles => fileTreeFilter.root.FilesInThisNode;
 
         public DirectoryInfo ModRootDirectory { get; private set; }
 
@@ -87,6 +89,7 @@ namespace PublisherPlus.Data
         {
             // file tree needs to init and set package first, as it provides the file list used by other filters
             fileTreeFilter = new FileFilter_FileTree();
+            
             gitIgnoreFilter = new FileFilter_GitIgnore();
             regexFilter = new FileFilter_Regex();
 
@@ -124,53 +127,23 @@ namespace PublisherPlus.Data
             fileTreeFilter.RefetchFiles();
         }
 
-        List<FileInfo> UploadableFiles = new List<FileInfo>();
         /// <summary>
         /// I should be doing try-catching in this section, but I would not know what the expected behavior would be if a specific file creation 
         /// failed. Ultimately the file upload should be cancelled. It makes more sense to me to throw whatever exception and then let the user 
         /// figure it out rather than trying to catch every possible issue
         /// </summary>
-        private void PrepareTempFolder()
+        private UploadablePackage PrepareUploadPackage()
         {
-            if(!PreviewExists)
-            {
-                UploadablePackage.PreviewFilePath = workshopItemHook.PreviewImagePath;
-            }
-            UploadableFiles.Clear();
+            DirectoryInfo uploadDirectory = new DirectoryInfo(PublisherPlusSettings.TempFolderPath).CreateSubdirectory(metaData.Name);
 
-            DirectoryInfo uploadDirectory = new DirectoryInfo(PublisherPlusSettings.TempFolderPath).CreateSubdirectory(ModRootDirectory.Name);
             if(uploadDirectory.ExistsNow())
             {
                 uploadDirectory.Delete(true);
             }
             uploadDirectory.Create();
 
-            Log.Message($"processing {fileTreeFilter.root.FilesInThisNode.Count()} entries");
-            ProcessNode(fileTreeFilter.root);
-
-            void ProcessNode(FileTreeNode node)
-            {
-                if(!AllowsPublishing(node.entryInfo, out string reason))
-                {
-                    Log.Message($"Skipping entry {node.entryInfo}: {reason}");
-                    return;
-                }
-                string targetPath = Path.Combine(uploadDirectory.FullName, Utility.GetRelativePathTo(node.entryInfo, ModRootDirectory));
-                if(node.entryInfo is DirectoryInfo)
-                {
-                    Directory.CreateDirectory(targetPath);
-                }
-                else if(node.entryInfo is FileInfo file)
-                {
-                    FileInfo createdFile = file.CopyTo(targetPath);
-                    UploadableFiles.Add(createdFile);
-                }
-
-                foreach(FileTreeNode child in node.children)
-                {
-                    ProcessNode(child);
-                }
-            }
+            return new UploadablePackage(this, uploadDirectory);
+            
         }
 
         public void UploadToWorkshop()
@@ -182,21 +155,36 @@ namespace PublisherPlus.Data
             }
             _current = this;
 
-            PrepareTempFolder();
+            UploadablePackage package = PrepareUploadPackage();
 
-            Access.Method_Verse_Steam_Workshop_Upload_Call(UploadablePackage);
+            Access.Method_Verse_Steam_Workshop_Upload_Call(package);
         }
 
-        public static void OnUploaded()
+        public static void OnUploaded(string fileId)
         {
             if(_current == null)
             {
                 return;
             }
 
-            Startup.Log($"Finished uploading '{_current.UploadablePackage.Title}'");
+            _current.EnsurePublishedFileId(fileId);
+
+            Startup.Log($"Finished uploading '{_current.metaData.Name}'");
 
             _current = null;
+        }
+
+        private void EnsurePublishedFileId(string fileId)
+        {
+            const string fileName = "PublishedFileId.txt";
+            const string aboutFolderName = "About";
+            string filePath = Path.Combine(metaData.RootDir.FullName, aboutFolderName, fileName);
+            if(File.Exists(filePath))
+            {
+                Log.Message($"file id already exists");
+                return;
+            }
+            File.WriteAllText(filePath, fileId);
         }
     }
 }

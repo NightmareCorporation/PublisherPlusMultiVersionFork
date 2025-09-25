@@ -22,14 +22,14 @@ namespace PublisherPlus.Interface
         private readonly List<Page> pages;
         private Page currentPage;
 
-        public Dialog_Publish(WorkshopItemHook hook)
+        public Dialog_Publish(ModMetaData metaData)
         {
             float width = Mathf.Max(Screen.width * 0.5f, MinimumSize.x);
             float height = Mathf.Max(Screen.height * 0.75f, MinimumSize.y);
 
             _initialSize = new Vector2(width, height);
 
-            package = new ManagedWorkshopPackage(hook);
+            package = new ManagedWorkshopPackage(metaData);
             pages = new List<Page>()
             {
                 new Page_Details(package),
