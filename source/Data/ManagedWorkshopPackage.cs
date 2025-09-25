@@ -1,4 +1,5 @@
 ﻿using PublisherPlus.Patch;
+using PublisherPlus.Settings;
 using Steamworks;
 using System;
 using System.Collections.Generic;
@@ -19,8 +20,6 @@ namespace PublisherPlus.Data
 
 		private const string TempFolderName = "PublisherPlus\\Temp";
 		private const string ConfigFileName = "_PublisherPlusV2.xml";
-
-		private static readonly DirectoryInfo TempDirectory = new DirectoryInfo(Path.Combine(GenFilePaths.ConfigFolderPath, TempFolderName));
 
 		private static ManagedWorkshopPackage _current;
 		public SerializedData SerializedData { get; set; }
@@ -44,13 +43,6 @@ namespace PublisherPlus.Data
 			LoadFromConfigFile();
 			UploadablePackage.OriginalPackageHook = hook;
 			UploadablePackage.ResetToOriginalHookData();
-
-			_uploadDirectory = TempDirectory.CreateSubdirectory(ModRootDirectory.Name);
-			if(_uploadDirectory.ExistsNow())
-			{
-				_uploadDirectory.Delete(true);
-			}
-			_uploadDirectory.Create();
 		}
 
 		#region Serialization
@@ -87,11 +79,9 @@ namespace PublisherPlus.Data
 		#endregion
 
 		public bool PreviewExists => UploadablePackage.PreviewFile.ExistsNow();
-		public IEnumerable<FileInfo> AllFiles => fileTreeFilter.root.FilesInThisNode;
+		public IEnumerable<FileInfo> AllFiles => UploadableFiles;
 
 		public DirectoryInfo ModRootDirectory { get; private set; }
-
-		private readonly DirectoryInfo _uploadDirectory;
 
 		private void SetFilters()
 		{
@@ -134,48 +124,49 @@ namespace PublisherPlus.Data
 			fileTreeFilter.RefetchFiles();
 		}
 
+		List<FileInfo> UploadableFiles = new List<FileInfo>();
 		private void PrepareTempFolder()
 		{
 			if(!PreviewExists)
 			{
 				UploadablePackage.PreviewFilePath = workshopItemHook.PreviewImagePath;
-			}
+            }
+			UploadableFiles.Clear();
 
-			//foreach(FileSystemInfo file in AllFiles)
-			//{
-			//	if(!AllowsPublishing(file, out _))
-			//	{
-			//		continue;
-			//	}
-			//	string path = Path.Combine(_uploadDirectory.FullName, GetRelativePathToModRoot(file));
+            DirectoryInfo uploadDirectory = new DirectoryInfo(PublisherPlusSettings.TempFolderPath).CreateSubdirectory(ModRootDirectory.Name);
+            if(uploadDirectory.ExistsNow())
+            {
+                uploadDirectory.Delete(true);
+            }
+            uploadDirectory.Create();
 
-			//	if(file is DirectoryInfo)
-			//	{
-			//		new DirectoryInfo(path).Create();
-			//	}
+			Log.Message($"processing {fileTreeFilter.root.FilesInThisNode.Count()} entries");
+            ProcessNode(fileTreeFilter.root);
 
-			//	if(!(file is FileInfo original))
-			//	{
-			//		continue;
-			//	}
+            void ProcessNode(FileTreeNode node)
+            {
+                if(!AllowsPublishing(node.entryInfo, out string reason))
+                {
+                    Log.Message($"Skipping entry {node.entryInfo}: {reason}");
+                    return;
+                }
+                string targetPath = Path.Combine(uploadDirectory.FullName, Utility.GetRelativePathTo(node.entryInfo, ModRootDirectory));
+                if(node.entryInfo is DirectoryInfo)
+                {
+                    Directory.CreateDirectory(targetPath);
+                }
+                else if(node.entryInfo is FileInfo file)
+                {
+                    FileInfo createdFile = file.CopyTo(targetPath);
+                    UploadableFiles.Add(createdFile);
+                }
 
-			//	try
-			//	{
-			//		FileInfo destination = new FileInfo(path);
-			//		if(destination.Directory == null)
-			//		{
-			//			throw new Startup.Exception("Destination directory is null");
-			//		}
-			//		destination.Directory.Create();
-			//		original.CopyTo(destination.FullName);
-			//	}
-			//	catch(Exception e)
-			//	{
-			//		string message = $"Skipping package file '{original.FullName}' due to error: {e.Message}";
-			//		Startup.Warning(message);
-			//	}
-			//}
-		}
+                foreach(FileTreeNode child in node.children)
+				{
+					ProcessNode(child);
+				}
+            }
+        }
 
 		public void UploadToWorkshop()
 		{
@@ -201,7 +192,6 @@ namespace PublisherPlus.Data
 			Startup.Log($"Finished uploading '{_current.UploadablePackage.Title}'");
 
 			_current = null;
-			TempDirectory.Delete(true);
 		}
 	}
 }

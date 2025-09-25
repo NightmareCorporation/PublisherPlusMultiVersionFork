@@ -9,7 +9,6 @@ namespace PublisherPlus.Data
 		ManagedWorkshopPackage package;
 		public FileTreeNode root;
 		public Dictionary<FileSystemInfo, FileTreeNode> fileInfoToTreeLookup = new Dictionary<FileSystemInfo, FileTreeNode>();
-
 		public void SetWorkshopPackage(ManagedWorkshopPackage package)
 		{
 			this.package = package;

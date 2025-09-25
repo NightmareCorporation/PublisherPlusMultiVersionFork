@@ -15,7 +15,7 @@ namespace PublisherPlus.Data
 		/// <see cref="null"/> if root node
 		/// </summary>
 		public FileTreeNode parent;
-		readonly FileSystemInfo entry;
+		public readonly FileSystemInfo entryInfo;
 		readonly ManagedWorkshopPackage package;
 
 		string label;
@@ -29,7 +29,7 @@ namespace PublisherPlus.Data
 
 		public FileTreeNode(FileSystemInfo entry, FileTreeNode parent, ManagedWorkshopPackage package)
 		{
-			this.entry = entry;
+			this.entryInfo = entry;
 			this.package = package;
 			BuildTreeFromNode(parent, package);
 			SetLabels(package);
@@ -64,13 +64,13 @@ namespace PublisherPlus.Data
 			}
 			else
 			{
-				yield return entry;
+				yield return entryInfo;
 			}
 		}
 
 		public void ApplyExcludedPaths(HashSet<string> excludedPaths)
 		{
-			if(excludedPaths.Contains(entry.FullName))
+			if(excludedPaths.Contains(entryInfo.FullName))
 			{
 				Log.Message($"forcing false for entry");
 				IsIncluded = false;
@@ -111,11 +111,11 @@ namespace PublisherPlus.Data
 			{
 				if(PublisherPlusSettings.UseRelativePathToParentForFileTree)
 				{
-					label = entry.GetRelativePathTo(parent.entry) ?? "";
+					label = entryInfo.GetRelativePathTo(parent.entryInfo) ?? "";
 				}
 				else
 				{
-					label = entry.GetRelativePathTo(package.ModRootDirectory);
+					label = entryInfo.GetRelativePathTo(package.ModRootDirectory);
 				}
 			}
 			readableByteSize = filesInThisNode.Sum(f => f.Length).HumanReadable();
@@ -129,12 +129,12 @@ namespace PublisherPlus.Data
 				depth = parent.depth + 1;
 			}
 
-			if(entry is FileInfo file)
+			if(entryInfo is FileInfo file)
 			{
 				TrackFile(file);
 			}
 
-			if(entry is DirectoryInfo directory)
+			if(entryInfo is DirectoryInfo directory)
 			{
 				foreach(FileSystemInfo item in directory.GetFileSystemInfos("*", SearchOption.TopDirectoryOnly))
 				{
@@ -178,7 +178,7 @@ namespace PublisherPlus.Data
 				}
 				Rect labelRect = divider.Rect;
 				Color previousColor = GUI.color;
-				bool isIncluded = package.AllowsPublishing(entry, out string reason);
+				bool isIncluded = package.AllowsPublishing(entryInfo, out string reason);
 				Color color = isIncluded ? GUI.color : Color.red;
 				GUI.color = color;
 				Widgets.Label(labelRect, label);
@@ -197,7 +197,7 @@ namespace PublisherPlus.Data
 			void DoExpandToggle()
 			{
 				Rect rect = divider.NewCol(Text.LineHeight, HorizontalJustification.Left);
-				if(!(entry is DirectoryInfo))
+				if(!(entryInfo is DirectoryInfo))
 				{
 					// consume the visual space, but don't draw anything in it
 					return;
