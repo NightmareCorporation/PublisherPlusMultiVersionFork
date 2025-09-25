@@ -125,7 +125,12 @@ namespace PublisherPlus.Data
 		}
 
 		List<FileInfo> UploadableFiles = new List<FileInfo>();
-		private void PrepareTempFolder()
+        /// <summary>
+        /// I should be doing try-catching in this section, but I would not know what the expected behavior would be if a specific file creation 
+        /// failed. Ultimately the file upload should be cancelled. It makes more sense to me to throw whatever exception and then let the user 
+        /// figure it out rather than trying to catch every possible issue
+        /// </summary>
+        private void PrepareTempFolder()
 		{
 			if(!PreviewExists)
 			{
