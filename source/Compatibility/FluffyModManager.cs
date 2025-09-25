@@ -7,28 +7,28 @@ using Verse;
 
 namespace PublisherPlus.Compatibility
 {
-	internal static class FluffyModManager
-	{
-		private static readonly Assembly Assembly = LoadedModManager.RunningModsListForReading.FirstOrDefault(mod => mod.Name == "Mod Manager")?.assemblies.loadedAssemblies.FirstOrDefault(assembly => assembly.GetName().Name == "ModManager");
+    internal static class FluffyModManager
+    {
+        private static readonly Assembly Assembly = LoadedModManager.RunningModsListForReading.FirstOrDefault(mod => mod.Name == "Mod Manager")?.assemblies.loadedAssemblies.FirstOrDefault(assembly => assembly.GetName().Name == "ModManager");
 
-		public static void AddCompatibility(Harmony harmony)
-		{
-			if(Assembly == null)
-			{
-				return;
-			}
+        public static void AddCompatibility(Harmony harmony)
+        {
+            if(Assembly == null)
+            {
+                return;
+            }
 
-			System.Type workshopType = Assembly.GetType("ModManager.Workshop");
-			MethodInfo workshopUploadMethod = workshopType.GetMethod("Upload", new[] { typeof(ModMetaData) });
-			MethodInfo workshopUploadPrefix = typeof(FluffyModManager).GetMethod("WorkshopUploadPrefix");
+            System.Type workshopType = Assembly.GetType("ModManager.Workshop");
+            MethodInfo workshopUploadMethod = workshopType.GetMethod("Upload", new[] { typeof(ModMetaData) });
+            MethodInfo workshopUploadPrefix = typeof(FluffyModManager).GetMethod("WorkshopUploadPrefix");
 
-			harmony.Patch(workshopUploadMethod, new HarmonyMethod(workshopUploadPrefix));
-		}
+            harmony.Patch(workshopUploadMethod, new HarmonyMethod(workshopUploadPrefix));
+        }
 
-		public static bool WorkshopUploadPrefix(ModMetaData mod)
-		{
-			Find.WindowStack.Add(new Dialog_ConfirmModUpload(mod, () => Find.WindowStack.Add(new Dialog_Publish(mod.GetWorkshopItemHook()))));
-			return false;
-		}
-	}
+        public static bool WorkshopUploadPrefix(ModMetaData mod)
+        {
+            Find.WindowStack.Add(new Dialog_ConfirmModUpload(mod, () => Find.WindowStack.Add(new Dialog_Publish(mod.GetWorkshopItemHook()))));
+            return false;
+        }
+    }
 }

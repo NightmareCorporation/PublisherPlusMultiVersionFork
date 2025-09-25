@@ -5,33 +5,33 @@ using Verse;
 
 namespace PublisherPlus.Data
 {
-	public class FileFilter_Regex : IFileFilter
-	{
-		ManagedWorkshopPackage package;
+    public class FileFilter_Regex : IFileFilter
+    {
+        ManagedWorkshopPackage package;
 
-		public void SetWorkshopPackage(ManagedWorkshopPackage package)
-		{
-			this.package = package;
-		}
+        public void SetWorkshopPackage(ManagedWorkshopPackage package)
+        {
+            this.package = package;
+        }
 
-		public string FilterReason => "Regex";
+        public string FilterReason => "Regex";
 
-		public bool AllowsPublishing(FileSystemInfo file)
-		{
-			if(package.SerializedData.Regex.Patterns.NullOrEmpty())
-			{
-				return true;
-			}
+        public bool AllowsPublishing(FileSystemInfo file)
+        {
+            if(package.SerializedData.Regex.Patterns.NullOrEmpty())
+            {
+                return true;
+            }
 
-			return !package.SerializedData.Regex.Patterns
-				.Any(pattern => Regex.IsMatch(file.Name, pattern));
-		}
+            return !package.SerializedData.Regex.Patterns
+                .Any(pattern => Regex.IsMatch(file.Name, pattern));
+        }
 
-		public bool IsActive => package.SerializedData.Regex.UseRegex;
+        public bool IsActive => package.SerializedData.Regex.UseRegex;
 
-		public void Reset()
-		{
-			package.SerializedData.Regex.UseRegex = true;
-		}
-	}
+        public void Reset()
+        {
+            package.SerializedData.Regex.UseRegex = true;
+        }
+    }
 }
