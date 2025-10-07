@@ -1,4 +1,4 @@
-﻿using RimWorld;
+﻿using System;
 using System.IO;
 using UnityEngine;
 using Verse;
@@ -25,8 +25,10 @@ namespace PublisherPlus.Settings
             list.CheckboxLabeled(Language.Get("Settings.UseRelativePathToParent"), ref PublisherPlusSettings.UseRelativePathToParentForFileTree, Language.Get("Settings.UseRelativePathToParent.Tip"));
             list.CheckboxLabeled(Language.Get("Settings.ShowFileSize"), ref PublisherPlusSettings.ShowFileSizeInFileTree);
             list.CheckboxLabeled(Language.Get("Settings.IndentButtonsWithTree"), ref PublisherPlusSettings.IndentButtonsWithTree, Language.Get("Settings.IndentButtonsWithTree.Tip"));
+            list.CheckboxLabeled(Language.Get("Settings.EmulateGitNotInstalled"), ref PublisherPlusSettings.EmulateGitNotInstalled, Language.Get("Settings.EmulateGitNotInstalled.Tip"));
 
             DoTempFolder(list);
+            DoGitLogCommand(list);
 
             list.End();
         }
@@ -35,38 +37,30 @@ namespace PublisherPlus.Settings
         private void DoTempFolder(Listing_Standard list)
         {
             list.Label(Language.Get("Settings.CurrentTempPath", tempFolderText.Italic()));
-            RectDivider divider = new RectDivider(list.GetRect(Text.LineHeight), this.GetType().GetHashCode());
-            DoSave();
-            DoReset();
-            tempFolderText = Widgets.TextArea(divider.Rect, tempFolderText);
 
-            void DoSave()
+            Action saveAction = TrySetTempFolder;
+            Action resetAction = () =>
             {
-                string label = Language.Get("Settings.Save");
-                Rect labelRect = divider.NewCol(Text.CalcSize(label + "    ").x, HorizontalJustification.Right, 2).Rect;
-                if(Widgets.ButtonText(labelRect, label))
-                {
-                    TrySetTempFolder();
-                }
-            }
+                tempFolderText = GenFilePaths.TempFolderPath;
+                TrySetTempFolder();
+            };
+            list.TextAreaWithSaveResetButtons(ref tempFolderText, saveAction, resetAction);
+        }
 
-            void DoReset()
-            {
-                string label = Language.Get("Settings.Reset");
-                Rect labelRect = divider.NewCol(Text.CalcSize(label + "    ").x, HorizontalJustification.Right, 2).Rect;
-                if(Widgets.ButtonText(labelRect, label))
-                {
-                    tempFolderText = GenFilePaths.TempFolderPath;
-                    TrySetTempFolder();
-                }
-            }
+        static string gitCommandText = PublisherPlusSettings.GitLogCommand;
+        private void DoGitLogCommand(Listing_Standard list)
+        {
+            list.Label(Language.Get("Settings.GitLogCommand"));
+            Action saveAction = () => PublisherPlusSettings.GitLogCommand = gitCommandText;
+            Action resetAction = PublisherPlusSettings.ResetGitLogCommand;
+            list.TextAreaWithSaveResetButtons(ref gitCommandText, saveAction, resetAction);
         }
 
         private void TrySetTempFolder()
         {
             if(!Directory.Exists(tempFolderText))
             {
-                Dialog_MessageBox messageBox = new Dialog_MessageBox(Language.Get("Settings.FolderDoesNotExist"),
+                Dialog_MessageBox messageBox = new Dialog_MessageBox(text: Language.Get("Settings.FolderDoesNotExist"),
                     Language.Get("Settings.FolderDoesNotExist.CreateFolder"), () =>
                     {
                         Directory.CreateDirectory(tempFolderText);
@@ -85,7 +79,15 @@ namespace PublisherPlus.Settings
         public static bool UseRelativePathToParentForFileTree = true;
         public static bool ShowFileSizeInFileTree = true;
         public static bool IndentButtonsWithTree = true;
+        public static bool EmulateGitNotInstalled = false;
         public static string TempFolderPath = GenFilePaths.TempFolderPath;
+        const string defaultGitLogCommand = @"log --max-count 20 --pretty=format:%H%n%s%n%b\r\n";
+        public static string GitLogCommand = defaultGitLogCommand;
+
+        public static void ResetGitLogCommand()
+        {
+            GitLogCommand = defaultGitLogCommand;
+        }
 
         public override void ExposeData()
         {
@@ -93,7 +95,9 @@ namespace PublisherPlus.Settings
             Scribe_Values.Look(ref UseRelativePathToParentForFileTree, nameof(UseRelativePathToParentForFileTree));
             Scribe_Values.Look(ref ShowFileSizeInFileTree, nameof(ShowFileSizeInFileTree));
             Scribe_Values.Look(ref IndentButtonsWithTree, nameof(IndentButtonsWithTree));
+            Scribe_Values.Look(ref EmulateGitNotInstalled, nameof(EmulateGitNotInstalled));
             Scribe_Values.Look(ref TempFolderPath, nameof(TempFolderPath));
+            Scribe_Values.Look(ref GitLogCommand, nameof(GitLogCommand));
         }
     }
 }

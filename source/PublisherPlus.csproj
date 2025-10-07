@@ -39,7 +39,6 @@
     <PackageReference Include="Lib.Harmony" Version="*">
       <ExcludeAssets>runtime</ExcludeAssets>
     </PackageReference>
-    <PackageReference Include="GitignoreParserNet" Version="*">
-    </PackageReference>
+    <PackageReference Include="GitignoreParserNet" Version="*"/>
   </ItemGroup>
 </Project>

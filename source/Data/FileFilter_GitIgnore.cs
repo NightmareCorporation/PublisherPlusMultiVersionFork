@@ -14,8 +14,6 @@ namespace PublisherPlus.Data
         /// </summary>
         private Dictionary<FileInfo, GitignoreParser> gitIgnoreParsers;
 
-        private const string GitIgnoreName = ".gitignore";
-
         ManagedWorkshopPackage package;
 
         public void SetWorkshopPackage(ManagedWorkshopPackage package)
@@ -75,7 +73,9 @@ namespace PublisherPlus.Data
 
         public void ParseGitIgnore()
         {
-            gitIgnoreParsers = package.AllFiles.Where(item => item.Name == GitIgnoreName)
+            const string pattern = ".gitignore";
+
+            gitIgnoreParsers = package.ModRootDirectory.GetFiles(pattern)
                 .ToDictionary(file => file, file => new GitignoreParser(file.FullName, Encoding.UTF8));
             _gitIgnoreInfoText = null;
         }

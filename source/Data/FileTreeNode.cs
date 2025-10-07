@@ -22,6 +22,7 @@ namespace PublisherPlus.Data
         public List<FileTreeNode> children = new List<FileTreeNode>();
         HashSet<FileInfo> filesInThisNode = new HashSet<FileInfo>();
         public HashSet<FileInfo> FilesInThisNode => filesInThisNode;
+
         int depth = 0;
         bool isExpanded = true;
 
@@ -118,7 +119,7 @@ namespace PublisherPlus.Data
                     label = entryInfo.GetRelativePathTo(package.ModRootDirectory);
                 }
             }
-            readableByteSize = filesInThisNode.Sum(f => f.Length).HumanReadable();
+            readableByteSize = filesInThisNode.Sum(f => f.Length).HumanReadableBytes();
         }
 
         private void BuildTreeFromNode(FileTreeNode parent, ManagedWorkshopPackage package)

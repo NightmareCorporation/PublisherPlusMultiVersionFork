@@ -3,6 +3,7 @@
   <PublisherPlus.Title.Details>Publish to Steam Workshop - Main Details</PublisherPlus.Title.Details>
   <PublisherPlus.Title.Contents>Publish to Steam Workshop - Contents</PublisherPlus.Title.Contents>
   <PublisherPlus.Title.Finalize>Publish to Steam Workshop - Finalize</PublisherPlus.Title.Finalize>
+  <PublisherPlus.Title.Commits>Publish to Steam Workshop - Commits</PublisherPlus.Title.Commits>
   <PublisherPlus.Button.Close>Close</PublisherPlus.Button.Close>
   <PublisherPlus.Button.Back>Back</PublisherPlus.Button.Back>
   <PublisherPlus.Button.Default>Default</PublisherPlus.Button.Default>
@@ -21,7 +22,13 @@
   <PublisherPlus.NewFileId>(New)</PublisherPlus.NewFileId>
   <PublisherPlus.FileNotAllowedToPublishReason>Not publishing this file, reason: {0}</PublisherPlus.FileNotAllowedToPublishReason>
 
-
+  <PublisherPlus.Commits.LastCommit>Last commit:</PublisherPlus.Commits.LastCommit>
+  <PublisherPlus.Commits.LastCommit.Hint>The last commit that has been published to the steam workshop</PublisherPlus.Commits.LastCommit.Hint>
+  <PublisherPlus.Commits.NewCommits>New commits</PublisherPlus.Commits.NewCommits>
+  <PublisherPlus.Commits.Preview>Changelog preview. You can edit this preview on the next page.</PublisherPlus.Commits.Preview>
+  <PublisherPlus.Commits.Refresh>Refresh</PublisherPlus.Commits.Refresh>
+  <PublisherPlus.Commits.NoGitRepository>No git repository found, cannot automatically generate changelog.</PublisherPlus.Commits.NoGitRepository>
+  
   <PublisherPlus.GitIgnore.UseGitIgnore>Use .gitignore filtering</PublisherPlus.GitIgnore.UseGitIgnore>
   <PublisherPlus.GitIgnore.ParseGitIgnore>Parse .gitignore now</PublisherPlus.GitIgnore.ParseGitIgnore>
   <PublisherPlus.GitIgnore.Info.NoGitIgnoreFound>No .gitignore files found</PublisherPlus.GitIgnore.Info.NoGitIgnoreFound>
@@ -44,6 +51,8 @@
   <PublisherPlus.Settings.ShowFileSize>Show file/directory size in file tree</PublisherPlus.Settings.ShowFileSize>
   <PublisherPlus.Settings.IndentButtonsWithTree>Indent buttons with file tree depth</PublisherPlus.Settings.IndentButtonsWithTree>
   <PublisherPlus.Settings.IndentButtonsWithTree.Tip>Moves the buttons in accordance to the file entries directory depth. If you want to have a "vertical line" of buttons all stacked neatly on top of each other instead of relatively positioned buttons, disable this</PublisherPlus.Settings.IndentButtonsWithTree.Tip>
+  <PublisherPlus.Settings.EmulateGitNotInstalled>Emulate git not installed / hide commit page</PublisherPlus.Settings.EmulateGitNotInstalled>
+  <PublisherPlus.Settings.EmulateGitNotInstalled.Tip>Can be used to disable the commit-page of the upload process.</PublisherPlus.Settings.EmulateGitNotInstalled.Tip>
 
   <PublisherPlus.Settings.CurrentTempPath>Current temp path: {0}</PublisherPlus.Settings.CurrentTempPath>
   <PublisherPlus.Settings.Save>Save</PublisherPlus.Settings.Save>
@@ -51,4 +60,6 @@
   <PublisherPlus.Settings.FolderDoesNotExist>Folder does not exist</PublisherPlus.Settings.FolderDoesNotExist>
   <PublisherPlus.Settings.FolderDoesNotExist.CreateFolder>Create folder</PublisherPlus.Settings.FolderDoesNotExist.CreateFolder>
   <PublisherPlus.Settings.Cancel>Cancel</PublisherPlus.Settings.Cancel>
+  <PublisherPlus.Settings.GitLogCommand>Git log command</PublisherPlus.Settings.GitLogCommand>
+  <PublisherPlus.Settings.GitLogCommand.Tip>Can be modified if you want to change the max count of commits to consider for user presentation.\n\nThere are no checks on the validity and parsability of this command here. Changing this in fundamental ways will break the logic to pull commits from your current project, so be careful.</PublisherPlus.Settings.GitLogCommand.Tip>
 </LanguageData>

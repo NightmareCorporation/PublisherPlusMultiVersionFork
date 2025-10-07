@@ -1,10 +1,10 @@
 ﻿using PublisherPlus.Data;
+using PublisherPlus.Settings;
 using RimWorld;
 using System.Collections.Generic;
 using UnityEngine;
 using Verse;
 using Verse.Sound;
-using Verse.Steam;
 using GridLayout = Verse.GridLayout;
 
 namespace PublisherPlus.Interface
@@ -19,24 +19,14 @@ namespace PublisherPlus.Interface
 
         private readonly ManagedWorkshopPackage package;
         Vector2 _initialSize;
-        private readonly List<Page> pages;
+        private List<Page> pages;
         private Page currentPage;
 
         public Dialog_Publish(ModMetaData metaData)
         {
-            float width = Mathf.Max(Screen.width * 0.5f, MinimumSize.x);
-            float height = Mathf.Max(Screen.height * 0.75f, MinimumSize.y);
-
-            _initialSize = new Vector2(width, height);
-
             package = new ManagedWorkshopPackage(metaData);
-            pages = new List<Page>()
-            {
-                new Page_Details(package),
-                new Page_Contents(package),
-                new Page_Finalize(package),
-            };
-            currentPage = pages[0];
+            SetSize();
+            SetPages();
 
             doCloseButton = false;
             doCloseX = true;
@@ -44,6 +34,29 @@ namespace PublisherPlus.Interface
             closeOnClickedOutside = false;
             draggable = true;
             resizeable = true;
+        }
+
+        void SetSize()
+        {
+            float width = Mathf.Max(Screen.width * 0.5f, MinimumSize.x);
+            float height = Mathf.Max(Screen.height * 0.75f, MinimumSize.y);
+            _initialSize = new Vector2(width, height);
+        }
+
+        private void SetPages()
+        {
+            pages = new List<Page>()
+            {
+                new Page_Details(package),
+                new Page_Contents(package),
+            };
+            bool isGitInstalled = PublisherPlusSettings.EmulateGitNotInstalled ? false : Utility.RunGitCommand("--version").Contains("git version"); ;
+            if(isGitInstalled)
+            {
+                pages.Add(new Page_Commits(package));
+            }
+            pages.Add(new Page_Finalize(package));
+            currentPage = pages[0];
         }
 
         private Vector2 MinimumSize = new Vector2(600, 600);
