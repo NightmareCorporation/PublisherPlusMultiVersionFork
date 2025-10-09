@@ -23,11 +23,16 @@
   <PublisherPlus.FileNotAllowedToPublishReason>Not publishing this file, reason: {0}</PublisherPlus.FileNotAllowedToPublishReason>
 
   <PublisherPlus.Commits.LastCommit>Last commit:</PublisherPlus.Commits.LastCommit>
-  <PublisherPlus.Commits.LastCommit.Hint>The last commit that has been published to the steam workshop</PublisherPlus.Commits.LastCommit.Hint>
+  <PublisherPlus.Commits.LastCommit.Hint>The last commit that has been published to the steam workshop. Must be the short hash, so 6 characters exactly.</PublisherPlus.Commits.LastCommit.Hint>
   <PublisherPlus.Commits.NewCommits>New commits</PublisherPlus.Commits.NewCommits>
   <PublisherPlus.Commits.Preview>Changelog preview. You can edit this preview on the next page.</PublisherPlus.Commits.Preview>
   <PublisherPlus.Commits.Refresh>Refresh</PublisherPlus.Commits.Refresh>
   <PublisherPlus.Commits.NoGitRepository>No git repository found, cannot automatically generate changelog.</PublisherPlus.Commits.NoGitRepository>
+  <PublisherPlus.Commits.NoCommits>Could not produce commit list.</PublisherPlus.Commits.NoCommits>
+  <PublisherPlus.Commits.NoCommitsSelectedPreview>No commits selected</PublisherPlus.Commits.NoCommitsSelectedPreview>
+  <PublisherPlus.Commits.OverwriteStartCommit>Overwrite</PublisherPlus.Commits.OverwriteStartCommit>
+  <PublisherPlus.Commits.OverwriteStartCommit.Tip>Allows you to define a "starting point" for the commit list manually. The mod tracks the latest commit hash whenever you push to the workshop to fill this value automatically.</PublisherPlus.Commits.OverwriteStartCommit.Tip>
+  <PublisherPlus.Commits.CommitNotInList>Commit hash could not be found in commit list. Clicking Overwrite will do nothing.</PublisherPlus.Commits.CommitNotInList>
   
   <PublisherPlus.GitIgnore.UseGitIgnore>Use .gitignore filtering</PublisherPlus.GitIgnore.UseGitIgnore>
   <PublisherPlus.GitIgnore.ParseGitIgnore>Parse .gitignore now</PublisherPlus.GitIgnore.ParseGitIgnore>

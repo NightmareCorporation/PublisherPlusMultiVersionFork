@@ -81,7 +81,7 @@ namespace PublisherPlus.Settings
         public static bool IndentButtonsWithTree = true;
         public static bool EmulateGitNotInstalled = false;
         public static string TempFolderPath = GenFilePaths.TempFolderPath;
-        const string defaultGitLogCommand = @"log --max-count 20 --pretty=format:%H%n%s%n%b\r\n";
+        const string defaultGitLogCommand = @"log --max-count 20 --pretty=format:%H%n%cI%n%s%n%b---";
         public static string GitLogCommand = defaultGitLogCommand;
 
         public static void ResetGitLogCommand()

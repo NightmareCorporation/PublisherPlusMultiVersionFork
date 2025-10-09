@@ -12,6 +12,8 @@ namespace PublisherPlus.Data
         public FileFilter_GitIgnoreData GitIgnore = new FileFilter_GitIgnoreData();
         [XmlElement]
         public FileFilter_RegexData Regex = new FileFilter_RegexData();
+        [XmlElement]
+        public string lastPublishedCommit = null;
 
         public void FinishLoading(ManagedWorkshopPackage package)
         {

@@ -1,4 +1,7 @@
 ﻿using PublisherPlus.Data;
+using PublisherPlus.Data.CommitList;
+using PublisherPlus.Settings;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using UnityEngine;
@@ -6,13 +9,23 @@ using Verse;
 
 namespace PublisherPlus.Interface
 {
+    [StaticConstructorOnStartup]
     public class Page_Commits : Page
     {
         bool isGitRepositoryPresent = false;
         float scrollHeight = 9999;
         Vector2 scrollPos;
+        CommitCollection commitCollection;
+        string startCommit;
 
-        public Page_Commits(ManagedWorkshopPackage package) : base(package) { }
+        IEnumerable<CommitEntry> includedCommits => commitCollection
+            .Where(entry => entry.IsIncludedInChangeLog);
+
+        public Page_Commits(ManagedWorkshopPackage package) : base(package)
+        {
+            startCommit = package.SerializedData.lastPublishedCommit;
+            startCommitText = startCommit ?? "";
+        }
 
         public override string Title => Language.Get("Title.Commits");
 
@@ -30,7 +43,7 @@ namespace PublisherPlus.Interface
             }
             if(isGitRepositoryPresent)
             {
-                DrawCommits(list);
+                DoCommits(list);
             }
             else
             {
@@ -42,14 +55,61 @@ namespace PublisherPlus.Interface
             DrawPreview(previewRect);
         }
 
-        private void DrawCommits(Listing_Standard list)
+        private void DoCommits(Listing_Standard list)
         {
-            Rect lastCommitRect = list.GetRect(Text.LineHeight);
-            Utility.Label(lastCommitRect, Language.Get("Commits.LastCommit"), TextAnchor.UpperLeft);
-            Utility.Label(lastCommitRect, "0000", TextAnchor.UpperRight);
-            TooltipHandler.TipRegion(lastCommitRect, Language.Get("Commits.LastCommit.Hint"));
+            DoStartCommit(list);
 
             list.Label(Language.Get("Commits.NewCommits").Bold());
+            if(commitCollection.EnumerableNullOrEmpty())
+            {
+                list.Label(Language.Get("Commits.NoCommits"));
+            }
+            else
+            {
+                bool insertSeparator = false;
+                foreach(CommitEntry entry in commitCollection)
+                {
+                    if(insertSeparator)
+                    {
+                        list.GapLine();
+                    }
+                    entry.Draw(list);
+
+                    insertSeparator = true;
+                }
+            }
+        }
+
+        string startCommitText;
+        private static readonly Texture2D warningIcon = Resources.Load<Texture2D>("Textures/UI/Widgets/YellowWarning");
+        private void DoStartCommit(Listing_Standard list)
+        {
+            const string fakeHashForLength = "______";
+            Rect rect = list.GetRect(Text.LineHeight);
+            TooltipHandler.TipRegion(rect, Language.Get("Commits.LastCommit.Hint"));
+            WidgetRow row = new WidgetRow(rect.x, rect.y, UIDirection.RightThenDown, rect.width);
+
+            string label = Language.Get("Commits.LastCommit");
+            row.Label(label);
+
+            Rect hashTextRect = row.ButtonRect(fakeHashForLength);
+            startCommitText = Widgets.TextArea(hashTextRect, startCommitText);
+            if(startCommitText.Length >= CommitEntry.HashLength)
+            {
+                startCommit = startCommitText.Substring(0, CommitEntry.HashLength);
+            }
+
+            if(!commitCollection.Any(commit => commit.ShortHash == startCommitText))
+            {
+                row.Icon(warningIcon, Language.Get("Commits.CommitNotInList"));
+            }
+            if(startCommitText.Length == 6)
+            {
+                if(row.ButtonText(Language.Get("Commits.OverwriteStartCommit"), Language.Get("Commits.OverwriteStartCommit.Tip")))
+                {
+                    commitCollection.ExcludeAllCommitsBefore(startCommit);
+                }
+            }
         }
 
         private void BuildCommitList()
@@ -61,19 +121,37 @@ namespace PublisherPlus.Interface
             }
             Log.Message($"found repository at {gitPath}");
             string projectPath = (gitPath as DirectoryInfo).Parent.FullName;
-            string command = @"log --max-count 20 --pretty=format:%H%n%s%n%b\r\n";
+            string command = PublisherPlusSettings.GitLogCommand;
             string logResult = Utility.RunGitCommand(command, workingDirectory: projectPath);
-            Log.Message(logResult);
+            commitCollection = new CommitCollection(logResult);
+            startCommit = package.SerializedData.lastPublishedCommit;
+            if(startCommit != null)
+            {
+                commitCollection.ExcludeAllCommitsBefore(startCommit);
+            }
         }
 
+        Texture2D lineTexture = SolidColorMaterials.NewSolidColorTexture(Color.gray);
         private void DrawPreview(Rect previewRect)
         {
+            previewRect = previewRect.ContractedBy(2);
+            Widgets.DrawBox(previewRect, 2, lineTexture);
+            previewRect = previewRect.ContractedBy(2);
             if(!isGitRepositoryPresent)
             {
                 return;
             }
             TooltipHandler.TipRegion(previewRect, Language.Get("Commits.Preview"));
-            Widgets.TextArea(previewRect, "---", readOnly: true);
+            string previewText;
+            if(includedCommits.EnumerableNullOrEmpty())
+            {
+                previewText = Language.Get("Commits.NoCommitsSelectedPreview");
+            }
+            else
+            {
+                previewText = string.Join("\n", includedCommits.Select(c => c.Content));
+            }
+            Widgets.TextArea(previewRect, previewText, readOnly: true);
         }
 
         private bool TryFetchRepositoryPath(out FileSystemInfo repositoryPath)
