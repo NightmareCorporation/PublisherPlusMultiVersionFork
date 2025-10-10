@@ -4,7 +4,6 @@ using Steamworks;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.IO.Enumeration;
 using System.Linq;
 using System.Xml.Serialization;
 using Verse;
@@ -34,12 +33,15 @@ namespace PublisherPlus.Data
         public FileFilter_FileTree fileTreeFilter;
         public FileFilter_Regex regexFilter;
 
+
+        string changeLog;
+
         public string HumanReadablePackageId => metaData.GetPublishedFileId() == PublishedFileId_t.Invalid ? "-" : metaData.GetPublishedFileId().ToString();
 
         public ManagedWorkshopPackage(ModMetaData metaData)
         {
             this.metaData = metaData;
-            
+
             WorkshopItemHook hook = metaData.GetWorkshopItemHook();
             workshopItemHook = hook;
             ModRootDirectory = hook.Directory;
@@ -82,6 +84,11 @@ namespace PublisherPlus.Data
         #endregion
 
         public IEnumerable<FileInfo> AllFiles => fileTreeFilter.root.FilesInThisNode;
+        public string ChangeLog
+        {
+            get => changeLog;
+            set => changeLog = value;
+        }
 
         public DirectoryInfo ModRootDirectory { get; private set; }
 
@@ -89,7 +96,7 @@ namespace PublisherPlus.Data
         {
             // file tree needs to init and set package first, as it provides the file list used by other filters
             fileTreeFilter = new FileFilter_FileTree();
-            
+
             gitIgnoreFilter = new FileFilter_GitIgnore();
             regexFilter = new FileFilter_Regex();
 
@@ -143,7 +150,7 @@ namespace PublisherPlus.Data
             uploadDirectory.Create();
 
             return new UploadablePackage(this, uploadDirectory);
-            
+
         }
 
         public void UploadToWorkshop()

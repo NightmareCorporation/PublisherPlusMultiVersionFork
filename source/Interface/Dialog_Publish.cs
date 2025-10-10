@@ -32,6 +32,7 @@ namespace PublisherPlus.Interface
             doCloseX = true;
             absorbInputAroundWindow = true;
             closeOnClickedOutside = false;
+            closeOnAccept = false;
             draggable = true;
             resizeable = true;
         }
@@ -55,6 +56,7 @@ namespace PublisherPlus.Interface
             {
                 pages.Add(new Page_Commits(package));
             }
+            pages.Add(new Page_ChangeLog(package));
             pages.Add(new Page_Finalize(package));
             currentPage = pages[0];
         }

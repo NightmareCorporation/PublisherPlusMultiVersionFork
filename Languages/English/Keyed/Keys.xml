@@ -4,6 +4,7 @@
   <PublisherPlus.Title.Contents>Publish to Steam Workshop - Contents</PublisherPlus.Title.Contents>
   <PublisherPlus.Title.Finalize>Publish to Steam Workshop - Finalize</PublisherPlus.Title.Finalize>
   <PublisherPlus.Title.Commits>Publish to Steam Workshop - Commits</PublisherPlus.Title.Commits>
+  <PublisherPlus.Title.ChangeLog>Publish to Steam Workshop - ChangeLog</PublisherPlus.Title.ChangeLog>
   <PublisherPlus.Button.Close>Close</PublisherPlus.Button.Close>
   <PublisherPlus.Button.Back>Back</PublisherPlus.Button.Back>
   <PublisherPlus.Button.Default>Default</PublisherPlus.Button.Default>
@@ -15,6 +16,7 @@
   <PublisherPlus.Description>Description</PublisherPlus.Description>
   <PublisherPlus.DescriptionLocked> (not editable here for updates)</PublisherPlus.DescriptionLocked>
   <PublisherPlus.Tags>Tags</PublisherPlus.Tags>
+  <PublisherPlus.ChangeLog>ChangeLog</PublisherPlus.ChangeLog>
   <PublisherPlus.PreviewFile>Workshop Preview File</PublisherPlus.PreviewFile>
   <PublisherPlus.PreviewNotFound> (not found at this path)</PublisherPlus.PreviewNotFound>
   <PublisherPlus.ContentDirectory>Content Folder</PublisherPlus.ContentDirectory>
@@ -33,6 +35,8 @@
   <PublisherPlus.Commits.OverwriteStartCommit>Overwrite</PublisherPlus.Commits.OverwriteStartCommit>
   <PublisherPlus.Commits.OverwriteStartCommit.Tip>Allows you to define a "starting point" for the commit list manually. The mod tracks the latest commit hash whenever you push to the workshop to fill this value automatically.</PublisherPlus.Commits.OverwriteStartCommit.Tip>
   <PublisherPlus.Commits.CommitNotInList>Commit hash could not be found in commit list. Clicking Overwrite will do nothing.</PublisherPlus.Commits.CommitNotInList>
+
+  <PublisherPlus.ChangeLog.Info>Text entered here will be entered into the changelog on the steam workshop after a successful push.</PublisherPlus.ChangeLog.Info>
   
   <PublisherPlus.GitIgnore.UseGitIgnore>Use .gitignore filtering</PublisherPlus.GitIgnore.UseGitIgnore>
   <PublisherPlus.GitIgnore.ParseGitIgnore>Parse .gitignore now</PublisherPlus.GitIgnore.ParseGitIgnore>

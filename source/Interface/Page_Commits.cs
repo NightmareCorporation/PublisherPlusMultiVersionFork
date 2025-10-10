@@ -17,6 +17,7 @@ namespace PublisherPlus.Interface
         Vector2 scrollPos;
         CommitCollection commitCollection;
         string startCommit;
+        string changeLogText;
 
         IEnumerable<CommitEntry> includedCommits => commitCollection
             .Where(entry => entry.IsIncludedInChangeLog);
@@ -25,6 +26,7 @@ namespace PublisherPlus.Interface
         {
             startCommit = package.SerializedData.lastPublishedCommit;
             startCommitText = startCommit ?? "";
+            BuildCommitList();
         }
 
         public override string Title => Language.Get("Title.Commits");
@@ -142,16 +144,12 @@ namespace PublisherPlus.Interface
                 return;
             }
             TooltipHandler.TipRegion(previewRect, Language.Get("Commits.Preview"));
-            string previewText;
-            if(includedCommits.EnumerableNullOrEmpty())
+            if(!includedCommits.EnumerableNullOrEmpty())
             {
-                previewText = Language.Get("Commits.NoCommitsSelectedPreview");
+                changeLogText = string.Join("\n", includedCommits.Select(c => c.Content));
+                package.ChangeLog = changeLogText;
             }
-            else
-            {
-                previewText = string.Join("\n", includedCommits.Select(c => c.Content));
-            }
-            Widgets.TextArea(previewRect, previewText, readOnly: true);
+            Widgets.TextArea(previewRect, changeLogText ?? Language.Get("Commits.NoCommitsSelectedPreview"), readOnly: true);
         }
 
         private bool TryFetchRepositoryPath(out FileSystemInfo repositoryPath)

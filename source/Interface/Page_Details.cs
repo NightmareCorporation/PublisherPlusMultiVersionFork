@@ -14,8 +14,12 @@ namespace PublisherPlus.Interface
         {
             Listing_Standard list = new Listing_Standard();
             list.Begin(inRect);
-            list.Gap();
+            FillWithDetails(list, package);
+            list.End();
+        }
 
+        public static void FillWithDetails(Listing_Standard list, ManagedWorkshopPackage package)
+        {
             list.Label(Language.Get("FileId").Bold());
             list.Label(package.HumanReadablePackageId.Italic());
             list.GapLine();
@@ -24,14 +28,20 @@ namespace PublisherPlus.Interface
             list.Label(package.metaData.Name);
             list.GapLine();
 
+            const int lineCountForTextEntries = 6;
             list.Label(Language.Get("Description").Bold());
-            list.Label(package.metaData.Description, Text.LineHeight * 6);
+            list.TextEntry(package.metaData.Description, lineCountForTextEntries);
             list.GapLine();
+
+            if(!package.ChangeLog.NullOrEmpty())
+            {
+                list.Label(Language.Get("ChangeLog").Bold());
+                list.TextEntry(package.ChangeLog, lineCountForTextEntries);
+                list.GapLine();
+            }
 
             list.Label(Language.Get("Tags").Bold());
             list.Label(package.metaData.GetWorkshopTags().ToCommaList().Italic());
-
-            list.End();
         }
     }
 }
