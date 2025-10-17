@@ -93,6 +93,7 @@ namespace PublisherPlus.Data
                 else if(node.entryInfo is FileInfo file)
                 {
                     FileInfo createdFile = file.CopyTo(targetPath);
+                    File.SetAttributes(createdFile.FullName, FileAttributes.Normal);    // prevents copying read-only status of files (which prevents deletion of directory)
                 }
 
                 foreach(FileTreeNode child in node.children)

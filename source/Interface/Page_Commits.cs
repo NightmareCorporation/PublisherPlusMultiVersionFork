@@ -126,6 +126,7 @@ namespace PublisherPlus.Interface
             string command = PublisherPlusSettings.GitLogCommand;
             string logResult = Utility.RunGitCommand(command, workingDirectory: projectPath);
             commitCollection = new CommitCollection(logResult);
+            package.CurrentCommitHash = commitCollection.FirstOrDefault()?.ShortHash;
             startCommit = package.SerializedData.lastPublishedCommit;
             if(startCommit != null)
             {
@@ -148,6 +149,10 @@ namespace PublisherPlus.Interface
             {
                 changeLogText = string.Join("\n", includedCommits.Select(c => c.Content));
                 package.ChangeLog = changeLogText;
+            }
+            else
+            {
+                changeLogText = null;
             }
             Widgets.TextArea(previewRect, changeLogText ?? Language.Get("Commits.NoCommitsSelectedPreview"), readOnly: true);
         }

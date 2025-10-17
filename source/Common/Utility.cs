@@ -34,6 +34,16 @@ namespace PublisherPlus
             return path;
         }
 
+        public static string GetRelativePathTo(string filePath, string directoryPath)
+        {
+            if(!filePath.Contains(directoryPath))
+            {
+                // file is not in directory, no relative path
+                return filePath;
+            }
+            return filePath.Replace(directoryPath, "");
+        }
+
         public static bool ExistsNow(this FileSystemInfo self)
         {
             self.Refresh();

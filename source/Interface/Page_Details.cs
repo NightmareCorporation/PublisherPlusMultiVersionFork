@@ -40,6 +40,13 @@ namespace PublisherPlus.Interface
                 list.GapLine();
             }
 
+            if(package.CurrentCommitHash != null || package.SerializedData.lastPublishedCommit != null)
+            {
+                list.Label(Language.Get("Commits").Bold(), tipSignal: Language.Get("Commits.Tip"));
+                string commitsLabel = $"{package.CurrentCommitHash ?? "-"} / {package.SerializedData.lastPublishedCommit ?? "-"}";
+                list.Label(commitsLabel, tipSignal: Language.Get("Commits.Tip"));
+            }
+
             list.Label(Language.Get("Tags").Bold());
             list.Label(package.metaData.GetWorkshopTags().ToCommaList().Italic());
         }

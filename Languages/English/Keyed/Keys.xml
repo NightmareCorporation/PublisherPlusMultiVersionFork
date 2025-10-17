@@ -17,6 +17,8 @@
   <PublisherPlus.DescriptionLocked> (not editable here for updates)</PublisherPlus.DescriptionLocked>
   <PublisherPlus.Tags>Tags</PublisherPlus.Tags>
   <PublisherPlus.ChangeLog>ChangeLog</PublisherPlus.ChangeLog>
+  <PublisherPlus.Commits>Current commit / Uploaded commit</PublisherPlus.Commits>
+  <PublisherPlus.Commits.Tip>"Uploaded commit" refers to the last commit that this mod could detect during a workshop publish.\n"Current commit" is the commit that the mod has detected right now and which would be set as the "uploaded commit" once you finish publishing.</PublisherPlus.Commits.Tip>
   <PublisherPlus.PreviewFile>Workshop Preview File</PublisherPlus.PreviewFile>
   <PublisherPlus.PreviewNotFound> (not found at this path)</PublisherPlus.PreviewNotFound>
   <PublisherPlus.ContentDirectory>Content Folder</PublisherPlus.ContentDirectory>

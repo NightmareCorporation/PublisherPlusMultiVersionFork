@@ -16,13 +16,8 @@ namespace PublisherPlus.Data
     /// </summary>
     public class ManagedWorkshopPackage
     {
-        public static readonly string separator = Path.DirectorySeparatorChar.ToString();
-        public bool isNewCreation = false;
-
-        private const string TempFolderName = "PublisherPlus\\Temp";
         private const string ConfigFileName = "_PublisherPlusV2.xml";
 
-        private static ManagedWorkshopPackage _current;
         public SerializedData SerializedData { get; set; }
 
         public readonly ModMetaData metaData;
@@ -33,23 +28,26 @@ namespace PublisherPlus.Data
         public FileFilter_FileTree fileTreeFilter;
         public FileFilter_Regex regexFilter;
 
+        private static ManagedWorkshopPackage _current;
+        private string _currentCommitHash;
+        private string _changeLog;
 
-        string changeLog;
-
+        public static ManagedWorkshopPackage Current => _current;
         public string HumanReadablePackageId => metaData.GetPublishedFileId() == PublishedFileId_t.Invalid ? "-" : metaData.GetPublishedFileId().ToString();
 
-        public ManagedWorkshopPackage(ModMetaData metaData)
+        public IEnumerable<FileInfo> AllFiles => fileTreeFilter.root.FilesInThisNode;
+        public string CurrentCommitHash
         {
-            this.metaData = metaData;
-
-            WorkshopItemHook hook = metaData.GetWorkshopItemHook();
-            workshopItemHook = hook;
-            ModRootDirectory = hook.Directory;
-
-            SetFilters();
-
-            LoadFromConfigFile();
+            get => _currentCommitHash;
+            set => _currentCommitHash = value;
         }
+        public string ChangeLog
+        {
+            get => _changeLog;
+            set => _changeLog = value;
+        }
+
+        public DirectoryInfo ModRootDirectory { get; private set; }
 
         #region Serialization
         readonly XmlSerializer serializer = new XmlSerializer(typeof(SerializedData));
@@ -71,7 +69,8 @@ namespace PublisherPlus.Data
         {
             string configFile = Path.Combine(ModRootDirectory.FullName, ConfigFileName);
 
-            SerializedData.FileTree.ExcludedFilePaths = fileTreeFilter.ExcludedPaths;
+            SerializedData.StartSaving(this);
+
             FileStream fileStream = new FileStream(configFile, FileMode.Create);    // using Create overwrites already existing content in the file. CreateOrOpen can lead to "trailing" old data at the end of the newly written data
             serializer.Serialize(fileStream, SerializedData);
         }
@@ -83,14 +82,18 @@ namespace PublisherPlus.Data
         }
         #endregion
 
-        public IEnumerable<FileInfo> AllFiles => fileTreeFilter.root.FilesInThisNode;
-        public string ChangeLog
+        public ManagedWorkshopPackage(ModMetaData metaData)
         {
-            get => changeLog;
-            set => changeLog = value;
-        }
+            this.metaData = metaData;
 
-        public DirectoryInfo ModRootDirectory { get; private set; }
+            WorkshopItemHook hook = metaData.GetWorkshopItemHook();
+            workshopItemHook = hook;
+            ModRootDirectory = hook.Directory;
+
+            SetFilters();
+
+            LoadFromConfigFile();
+        }
 
         private void SetFilters()
         {
@@ -175,6 +178,7 @@ namespace PublisherPlus.Data
             }
 
             _current.EnsurePublishedFileId(fileId);
+            _current.SetLastPublishedCommit();
 
             Startup.Log($"Finished uploading '{_current.metaData.Name}'");
 
@@ -192,6 +196,12 @@ namespace PublisherPlus.Data
                 return;
             }
             File.WriteAllText(filePath, fileId);
+        }
+
+        private void SetLastPublishedCommit()
+        {
+            SerializedData.lastPublishedCommit = CurrentCommitHash;
+            SaveToConfigFile();
         }
     }
 }

@@ -1,4 +1,6 @@
 ﻿using System.Collections.Generic;
+using System.IO;
+using System.Linq;
 using System.Xml.Serialization;
 
 namespace PublisherPlus.Data
@@ -15,9 +17,18 @@ namespace PublisherPlus.Data
         [XmlElement]
         public string lastPublishedCommit = null;
 
+        public void StartSaving(ManagedWorkshopPackage package)
+        {
+            FileTree.ExcludedFilePaths = package.fileTreeFilter.ExcludedPaths
+                .Select(path => Utility.GetRelativePathTo(path, package.ModRootDirectory.FullName))
+                .ToHashSet();
+        }
+
         public void FinishLoading(ManagedWorkshopPackage package)
         {
-            package.fileTreeFilter.ExcludedPaths = FileTree.ExcludedFilePaths;
+            package.fileTreeFilter.ExcludedPaths = FileTree.ExcludedFilePaths
+                .Select(path => Path.Combine(path, package.ModRootDirectory.FullName))
+                .ToHashSet();
             if(!Regex.HasInitializedDefaultValues)
             {
                 Regex.SetDefaultValues();
@@ -54,6 +65,7 @@ namespace PublisherPlus.Data
                 "\\.gitignore",
                 "_PublisherPlusV2.xml",
                 "_PublisherPlus.xml",
+                "\\.git",
             };
         }
     }
