@@ -23,6 +23,8 @@ namespace PublisherPlus.Data
         public readonly ModMetaData metaData;
         private readonly WorkshopItemHook workshopItemHook;
 
+        public FileTree fileTree;
+
         private List<IFileFilter> filters;
         public FileFilter_GitIgnore gitIgnoreFilter;
         public FileFilter_FileTree fileTreeFilter;
@@ -35,7 +37,6 @@ namespace PublisherPlus.Data
         public static ManagedWorkshopPackage Current => _current;
         public string HumanReadablePackageId => metaData.GetPublishedFileId() == PublishedFileId_t.Invalid ? "-" : metaData.GetPublishedFileId().ToString();
 
-        public IEnumerable<FileInfo> AllFiles => fileTreeFilter.root.FilesInThisNode;
         public string CurrentCommitHash
         {
             get => _currentCommitHash;
@@ -78,6 +79,7 @@ namespace PublisherPlus.Data
         public void ResetConfig()
         {
             RefetchFiles();
+            fileTree.Reset();
             filters.ForEach(filter => filter.Reset());
         }
         #endregion
@@ -134,7 +136,7 @@ namespace PublisherPlus.Data
 
         public void RefetchFiles()
         {
-            fileTreeFilter.RefetchFiles();
+            fileTree.RefetchFiles();
         }
 
         /// <summary>

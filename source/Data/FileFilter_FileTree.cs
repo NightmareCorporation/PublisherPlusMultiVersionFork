@@ -7,12 +7,9 @@ namespace PublisherPlus.Data
     public class FileFilter_FileTree : IFileFilter
     {
         ManagedWorkshopPackage package;
-        public FileTreeNode root;
-        public Dictionary<FileSystemInfo, FileTreeNode> fileInfoToTreeLookup = new Dictionary<FileSystemInfo, FileTreeNode>();
         public void SetWorkshopPackage(ManagedWorkshopPackage package)
         {
             this.package = package;
-            root = new FileTreeNode(package.ModRootDirectory, null, package);
         }
         public string FilterReason => "FileTreeExclusion";
 
@@ -20,6 +17,12 @@ namespace PublisherPlus.Data
         {
             return fileInfoToTreeLookup[file].IsIncluded;
         }
+
+        public void Reset()
+        {
+
+        }
+
         public bool IsActive => true;
         public HashSet<string> ExcludedPaths
         {
@@ -36,20 +39,5 @@ namespace PublisherPlus.Data
             }
         }
 
-        public void Reset()
-        {
-            root = new FileTreeNode(package.ModRootDirectory, null, package);
-            root.ApplyExcludedPaths(package.SerializedData.FileTree.ExcludedFilePaths);
-        }
-
-        public void RefetchFiles()
-        {
-            HashSet<string> previousList = root.GetExcludedPaths()
-                .Select(p => p.FullName)
-                .ToHashSet();
-            root = new FileTreeNode(package.ModRootDirectory, null, package);
-            root.ApplyExcludedPaths(previousList);
-
-        }
     }
 }

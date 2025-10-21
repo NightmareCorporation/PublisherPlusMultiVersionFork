@@ -34,7 +34,7 @@ namespace PublisherPlus.Data
             this.package = package;
             BuildTreeFromNode(parent, package);
             SetLabels(package);
-            package.fileTreeFilter.fileInfoToTreeLookup.SetOrAdd(entry, this);
+            package.fileTree.Notify_NodeAdded(entry, this);
         }
 
         bool _isIncluded = true;

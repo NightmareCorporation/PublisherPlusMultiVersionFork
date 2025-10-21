@@ -75,7 +75,7 @@ namespace PublisherPlus.Data
             PublishedFileId = managedPackage.metaData.GetPublishedFileId();
             PreviewFilePath = managedPackage.metaData.PreviewImagePath;
 
-            CreateUploadableMirror(managedPackage.fileTreeFilter.root);
+            CreateUploadableMirror(managedPackage.fileTree.Root);
             UploadDirectory = targetDirectory;
 
             void CreateUploadableMirror(FileTreeNode node)

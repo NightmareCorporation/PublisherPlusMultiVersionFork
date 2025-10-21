@@ -54,7 +54,7 @@ namespace PublisherPlus.Interface
             Widgets.BeginScrollView(inRect, ref scrollPos, scrollRect);
             list.Begin(scrollRect);
 
-            package.fileTreeFilter.root.TryDraw(list);
+            package.fileTree.Root.TryDraw(list);
 
             list.End();
             Widgets.EndScrollView();
