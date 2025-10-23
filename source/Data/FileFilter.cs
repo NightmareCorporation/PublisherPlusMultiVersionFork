@@ -2,12 +2,20 @@
 
 namespace PublisherPlus.Data
 {
-    public interface IFileFilter
+    public abstract class FileFilter
     {
-        void SetWorkshopPackage(ManagedWorkshopPackage package);
-        bool IsActive { get; }
-        string FilterReason { get; }
-        void Reset();
-        bool AllowsPublishing(FileSystemInfo file);
+        protected ManagedWorkshopPackage package;
+        public FileFilter(ManagedWorkshopPackage package)
+        {
+            this.package = package;
+        }
+        virtual public bool IsActive { get; }
+        abstract public string FilterReason { get; }
+        abstract public bool AllowsPublishing(FileSystemInfo file);
+
+        virtual public void Reset()
+        {
+
+        }
     }
 }

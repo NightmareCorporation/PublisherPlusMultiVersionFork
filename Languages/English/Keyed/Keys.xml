@@ -53,9 +53,12 @@
   
   <PublisherPlus.Expand>Click to expand</PublisherPlus.Expand>
   <PublisherPlus.Collapse>Click to collapse</PublisherPlus.Collapse>
-  <PublisherPlus.Include>Click to allow file to be uploaded to workshop</PublisherPlus.Include>
-  <PublisherPlus.Exclude>Click to prevent file from being uploaded to workshop</PublisherPlus.Exclude>
-
+  <PublisherPlus.Included>File or Directory is currently included in upload.\nClick to remove it from the workshop upload.</PublisherPlus.Included>
+  <PublisherPlus.Excluded>File or Directory is currently excluded from upload.\nClick to add it to the workshop upload.</PublisherPlus.Excluded>
+  <PublisherPlus.Partial>File or Directory is partially included in upload.\nClick to add or remove it from the workshop upload.</PublisherPlus.Partial>
+  <PublisherPlus.IncludeAll>Include all</PublisherPlus.IncludeAll>
+  <PublisherPlus.ExcludeAll>Exclude all</PublisherPlus.ExcludeAll>
+  
   <PublisherPlus.Settings.Title>Publisher Plus</PublisherPlus.Settings.Title>
   <PublisherPlus.Settings.UseRelativePathToParent>Use relative path to parent</PublisherPlus.Settings.UseRelativePathToParent>
   <PublisherPlus.Settings.UseRelativePathToParent.Tip>Display just the file / folder name instead of the full path relative to the mods root directory</PublisherPlus.Settings.UseRelativePathToParent.Tip>
@@ -73,4 +76,5 @@
   <PublisherPlus.Settings.Cancel>Cancel</PublisherPlus.Settings.Cancel>
   <PublisherPlus.Settings.GitLogCommand>Git log command</PublisherPlus.Settings.GitLogCommand>
   <PublisherPlus.Settings.GitLogCommand.Tip>Can be modified if you want to change the max count of commits to consider for user presentation.\n\nThere are no checks on the validity and parsability of this command here. Changing this in fundamental ways will break the logic to pull commits from your current project, so be careful.</PublisherPlus.Settings.GitLogCommand.Tip>
+
 </LanguageData>

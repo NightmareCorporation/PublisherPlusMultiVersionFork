@@ -37,56 +37,6 @@ namespace PublisherPlus.Data
             package.fileTree.Notify_NodeAdded(entry, this);
         }
 
-        bool _isIncluded = true;
-        public bool IsIncluded
-        {
-            get
-            {
-                return _isIncluded;
-            }
-            set
-            {
-                _isIncluded = value;
-                children.ForEach(child => child.IsIncluded = value);
-            }
-        }
-
-        public IEnumerable<FileSystemInfo> GetExcludedPaths()
-        {
-            if(IsIncluded)
-            {
-                foreach(FileTreeNode child in children)
-                {
-                    foreach(FileSystemInfo childEntry in child.GetExcludedPaths())
-                    {
-                        yield return childEntry;
-                    }
-                }
-            }
-            else
-            {
-                yield return entryInfo;
-            }
-        }
-
-        public void ApplyExcludedPaths(HashSet<string> excludedPaths)
-        {
-            if(excludedPaths.Contains(entryInfo.FullName))
-            {
-                Log.Message($"forcing false for entry");
-                IsIncluded = false;
-            }
-            else
-            {
-                IsIncluded = true;
-                foreach(FileTreeNode child in children)
-                {
-                    child.ApplyExcludedPaths(excludedPaths);
-                }
-            }
-        }
-
-
         public bool IsRoot => parent == null;
         public bool HasChildren => !children.Any();
 
@@ -215,11 +165,27 @@ namespace PublisherPlus.Data
             void DoIncludedToggle()
             {
                 Rect rect = divider.NewCol(Text.LineHeight, HorizontalJustification.Left);
-                string text = IsIncluded ? Language.Get("Exclude") : Language.Get("Include");
-                Texture2D texture = IsIncluded ? Widgets.CheckboxOnTex : Widgets.CheckboxOffTex;
-                if(Widgets.ButtonImage(rect, texture))
+                bool isIncludedByTreeFilter = package.fileTreeFilter.AllowsPublishing(this);
+                string text = null;
+                Texture2D texture = null;
+                if(package.fileTreeFilter.IsPartial(this))
                 {
-                    IsIncluded = !IsIncluded;
+                    text = Language.Get("Partial");
+                    texture = Widgets.CheckboxPartialTex;
+                }
+                else if(isIncludedByTreeFilter)
+                {
+                    text = Language.Get("Included");
+                    texture = Widgets.CheckboxOnTex;
+                }
+                else
+                {
+                    text = Language.Get("Excluded");
+                    texture = Widgets.CheckboxOffTex;
+                }
+                if(Widgets.ButtonImage(rect, texture, tooltip: text))
+                {
+                    package.fileTreeFilter.ToggleState(this);
                     SoundDefOf.Click.PlayOneShotOnCamera();
                 }
             }
@@ -230,6 +196,11 @@ namespace PublisherPlus.Data
                 Rect rect = divider.NewCol(width, HorizontalJustification.Right);
                 Widgets.Label(rect, readableByteSize);
             }
+        }
+
+        public override string ToString()
+        {
+            return $"{this.GetType().ToString()}(entry={entryInfo?.FullName ?? "NULL"})";
         }
     }
 }

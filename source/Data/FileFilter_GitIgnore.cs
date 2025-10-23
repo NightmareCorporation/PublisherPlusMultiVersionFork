@@ -7,21 +7,15 @@ using Verse;
 
 namespace PublisherPlus.Data
 {
-    public class FileFilter_GitIgnore : IFileFilter
+    public class FileFilter_GitIgnore : FileFilter
     {
         /// <summary>
         /// There can be multiple .gitignore files located throughout a solution, each gitignore must apply its filters relative to the file location
         /// </summary>
         private Dictionary<FileInfo, GitignoreParser> gitIgnoreParsers;
 
-        ManagedWorkshopPackage package;
-
-        public void SetWorkshopPackage(ManagedWorkshopPackage package)
-        {
-            this.package = package;
-        }
-
-        public string FilterReason => ".gitignore";
+        public override string FilterReason => ".gitignore";
+        public override bool IsActive => package.SerializedData.GitIgnore.UseGitIgnore;
 
         private string _gitIgnoreInfoText;
         public string GitIgnoreInfoText
@@ -44,7 +38,9 @@ namespace PublisherPlus.Data
             }
         }
 
-        public bool AllowsPublishing(FileSystemInfo file)
+        public FileFilter_GitIgnore(ManagedWorkshopPackage package) : base(package) { }
+
+        public override bool AllowsPublishing(FileSystemInfo file)
         {
             if(gitIgnoreParsers.NullOrEmpty())
             {
@@ -63,9 +59,7 @@ namespace PublisherPlus.Data
             return gitIgnoreParsers[parserFile].Accepts(relativePath);
         }
 
-        public bool IsActive => package.SerializedData.GitIgnore.UseGitIgnore;
-
-        public void Reset()
+        public override void Reset()
         {
             package.SerializedData.GitIgnore.UseGitIgnore = false;
             ParseGitIgnore();

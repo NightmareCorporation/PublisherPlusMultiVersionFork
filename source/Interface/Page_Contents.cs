@@ -1,8 +1,6 @@
 ﻿using PublisherPlus.Data;
-using RimWorld;
 using UnityEngine;
 using Verse;
-using Verse.Sound;
 
 namespace PublisherPlus.Interface
 {
@@ -25,11 +23,11 @@ namespace PublisherPlus.Interface
 
             controlRibbon.Draw(list.GetRect(Text.LineHeight));
 
-            if(list.ButtonText("Refetch files"))
-            {
-                SoundDefOf.Click.PlayOneShotOnCamera();
-                package.RefetchFiles();
-            }
+            //if(list.ButtonText("Refetch files"))
+            //{
+            //    SoundDefOf.Click.PlayOneShotOnCamera();
+            //    package.RefetchFiles();
+            //}
             list.Gap();
             list.Label(Language.Get("ContentDirectory").Bold());
             list.Label(package.ModRootDirectory.FullName.Italic());

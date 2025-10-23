@@ -1,6 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.IO;
-using System.Linq;
 using System.Xml.Serialization;
 
 namespace PublisherPlus.Data
@@ -19,20 +17,22 @@ namespace PublisherPlus.Data
 
         public void StartSaving(ManagedWorkshopPackage package)
         {
-            FileTree.ExcludedFilePaths = package.fileTreeFilter.ExcludedPaths
-                .Select(path => Utility.GetRelativePathTo(path, package.ModRootDirectory.FullName))
-                .ToHashSet();
+#warning must re-add!
+            //FileTree.ExcludedFilePaths = package.fileTreeFilter.ExcludedPaths
+            //    .Select(path => Utility.GetRelativePathTo(path, package.ModRootDirectory.FullName))
+            //    .ToHashSet();
         }
 
         public void FinishLoading(ManagedWorkshopPackage package)
         {
-            package.fileTreeFilter.ExcludedPaths = FileTree.ExcludedFilePaths
-                .Select(path => Path.Combine(path, package.ModRootDirectory.FullName))
-                .ToHashSet();
-            if(!Regex.HasInitializedDefaultValues)
-            {
-                Regex.SetDefaultValues();
-            }
+#warning must re-add!
+            //package.fileTreeFilter.ExcludedPaths = FileTree.ExcludedFilePaths
+            //    .Select(path => Path.Combine(path, package.ModRootDirectory.FullName))
+            //    .ToHashSet();
+            //if(!Regex.HasInitializedDefaultValues)
+            //{
+            //    Regex.SetDefaultValues();
+            //}
         }
     }
 

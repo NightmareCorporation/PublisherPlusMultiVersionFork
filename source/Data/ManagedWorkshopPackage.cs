@@ -11,13 +11,8 @@ using Verse.Steam;
 
 namespace PublisherPlus.Data
 {
-    /// <summary>
-    /// A mod folder to be uploaded to the workshop. Handles most of the logic for file IO, aggregation, and filtering.
-    /// </summary>
     public class ManagedWorkshopPackage
     {
-        private const string ConfigFileName = "_PublisherPlusV2.xml";
-
         public SerializedData SerializedData { get; set; }
 
         public readonly ModMetaData metaData;
@@ -25,7 +20,7 @@ namespace PublisherPlus.Data
 
         public FileTree fileTree;
 
-        private List<IFileFilter> filters;
+        private List<FileFilter> filters;
         public FileFilter_GitIgnore gitIgnoreFilter;
         public FileFilter_FileTree fileTreeFilter;
         public FileFilter_Regex regexFilter;
@@ -51,10 +46,11 @@ namespace PublisherPlus.Data
         public DirectoryInfo ModRootDirectory { get; private set; }
 
         #region Serialization
+        private const string configFileName = "_PublisherPlusV2.xml";
         readonly XmlSerializer serializer = new XmlSerializer(typeof(SerializedData));
         private void LoadFromConfigFile()
         {
-            string configFile = Path.Combine(ModRootDirectory.FullName, ConfigFileName);
+            string configFile = Path.Combine(ModRootDirectory.FullName, configFileName);
             if(!File.Exists(configFile))
             {
                 SerializedData = new SerializedData();
@@ -68,7 +64,7 @@ namespace PublisherPlus.Data
 
         public void SaveToConfigFile()
         {
-            string configFile = Path.Combine(ModRootDirectory.FullName, ConfigFileName);
+            string configFile = Path.Combine(ModRootDirectory.FullName, configFileName);
 
             SerializedData.StartSaving(this);
 
@@ -78,7 +74,6 @@ namespace PublisherPlus.Data
 
         public void ResetConfig()
         {
-            RefetchFiles();
             fileTree.Reset();
             filters.ForEach(filter => filter.Reset());
         }
@@ -92,33 +87,36 @@ namespace PublisherPlus.Data
             workshopItemHook = hook;
             ModRootDirectory = hook.Directory;
 
+            InitiateFileTree();
             SetFilters();
 
             LoadFromConfigFile();
         }
 
+        private void InitiateFileTree()
+        {
+            fileTree = new FileTree(this);
+        }
+
         private void SetFilters()
         {
-            // file tree needs to init and set package first, as it provides the file list used by other filters
-            fileTreeFilter = new FileFilter_FileTree();
+            fileTreeFilter = new FileFilter_FileTree(this);
+            gitIgnoreFilter = new FileFilter_GitIgnore(this);
+            regexFilter = new FileFilter_Regex(this);
 
-            gitIgnoreFilter = new FileFilter_GitIgnore();
-            regexFilter = new FileFilter_Regex();
-
-            filters = new List<IFileFilter>()
+            filters = new List<FileFilter>()
             {
                 fileTreeFilter,
                 gitIgnoreFilter,
                 regexFilter,
             };
-            filters.ForEach(filter => filter.SetWorkshopPackage(this));
         }
 
         public bool AllowsPublishing(FileSystemInfo item, out string reason)
         {
             List<string> reasons = new List<string>();
             bool isPublishingAllowed = true;
-            foreach(IFileFilter filter in filters)
+            foreach(FileFilter filter in filters)
             {
                 if(!filter.IsActive)
                 {
@@ -132,11 +130,6 @@ namespace PublisherPlus.Data
             }
             reason = reasons.Any() ? String.Join(", ", reasons) : null;
             return isPublishingAllowed;
-        }
-
-        public void RefetchFiles()
-        {
-            fileTree.RefetchFiles();
         }
 
         /// <summary>
