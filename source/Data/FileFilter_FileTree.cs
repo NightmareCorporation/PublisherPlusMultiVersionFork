@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using Verse;
@@ -46,12 +47,9 @@ namespace PublisherPlus.Data
                         // in this specific case a parent is excluded. We must exclude all the siblings of this node and then include the node itself
                         if(node.parent != null)
                         {
-                            Log.Message($"detected excluded parent and setting all children to excluded");
-#warning this doesn't work properly...
                             foreach(FileTreeNode child in node.parent.children)
                             {
                                 states[child] = NodeInclusionState.Excluded;
-                                //SetState(child, NodeInclusionState.Excluded);
                             }
                         }
                         SetState(node, NodeInclusionState.Included);
@@ -141,6 +139,58 @@ namespace PublisherPlus.Data
         {
             return states.TryGetValue(node, NodeInclusionState.Included) != NodeInclusionState.Excluded
                 && (node.parent == null || AllowsPublishing(node.parent));
+        }
+
+        public override void StartSaving()
+        {
+            base.StartSaving();
+            package.SerializedData.FileTree.ExcludedPaths = states
+                .Where(state => state.Value == NodeInclusionState.Excluded)
+                .Select(state => state.Key.entryInfo.GetRelativePathTo(package.ModRootDirectory))
+                .ToHashSet();
+        }
+
+        public override void FinishLoading()
+        {
+            base.FinishLoading();
+            List<FileTreeNode> nodes = package.SerializedData.FileTree.ExcludedPaths
+                .Select(path => GetNode(path))
+                .ToList();
+
+            foreach(FileTreeNode entry in nodes)
+            {
+                states[entry] = NodeInclusionState.Excluded;
+            }
+
+            // this will trigger the calculations for "partial" state in directories. Makes the most sense AFTER all excluded states are set
+            foreach(FileTreeNode entry in nodes)
+            {
+                UpdateParent(entry);
+            }
+        }
+
+        private FileTreeNode GetNode(string relativeFilePath)
+        {
+            string path = Path.Combine(package.ModRootDirectory.FullName, relativeFilePath);
+            FileSystemInfo entryInfo;
+            if(Directory.Exists(path))
+            {
+                entryInfo = new DirectoryInfo(path);
+            }
+            else if(File.Exists(path))
+            {
+                entryInfo = new FileInfo(path);
+            }
+            else
+            {
+                throw new Exception($"Could not find file or directory for path {relativeFilePath}");
+            }
+            FileTreeNode entry = package.fileTree.NodeForEntry(entryInfo);
+            if(entry == null)
+            {
+                throw new Exception($"Could not retrieve file tree node for {(entryInfo is FileInfo ? "file" : "directory")} {entryInfo.FullName}");
+            }
+            return entry;
         }
     }
 }

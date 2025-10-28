@@ -48,6 +48,25 @@ namespace PublisherPlus.Data
         #region Serialization
         private const string configFileName = "_PublisherPlusV2.xml";
         readonly XmlSerializer serializer = new XmlSerializer(typeof(SerializedData));
+
+        public void SaveToConfigFile()
+        {
+            string configFile = Path.Combine(ModRootDirectory.FullName, configFileName);
+
+            StartSaving();
+
+            FileStream fileStream = new FileStream(configFile, FileMode.Create);    // using Create overwrites already existing content in the file. CreateOrOpen can lead to "trailing" old data at the end of the newly written data
+            serializer.Serialize(fileStream, SerializedData);
+        }
+
+        private void StartSaving()
+        {
+            foreach(FileFilter filter in filters)
+            {
+                filter.StartSaving();
+            }
+        }
+
         private void LoadFromConfigFile()
         {
             string configFile = Path.Combine(ModRootDirectory.FullName, configFileName);
@@ -59,17 +78,15 @@ namespace PublisherPlus.Data
 
             FileStream fileStream = new FileStream(configFile, FileMode.Open);
             SerializedData = (SerializedData)serializer.Deserialize(fileStream);
-            SerializedData.FinishLoading(this);
+            FinishLoading();
         }
 
-        public void SaveToConfigFile()
+        private void FinishLoading()
         {
-            string configFile = Path.Combine(ModRootDirectory.FullName, configFileName);
-
-            SerializedData.StartSaving(this);
-
-            FileStream fileStream = new FileStream(configFile, FileMode.Create);    // using Create overwrites already existing content in the file. CreateOrOpen can lead to "trailing" old data at the end of the newly written data
-            serializer.Serialize(fileStream, SerializedData);
+            foreach(FileFilter filter in filters)
+            {
+                filter.FinishLoading();
+            }
         }
 
         public void ResetConfig()
@@ -96,6 +113,7 @@ namespace PublisherPlus.Data
         private void InitiateFileTree()
         {
             fileTree = new FileTree(this);
+            fileTree.InitFileTree();
         }
 
         private void SetFilters()

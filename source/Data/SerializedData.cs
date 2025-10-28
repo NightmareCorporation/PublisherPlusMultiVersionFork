@@ -14,32 +14,12 @@ namespace PublisherPlus.Data
         public FileFilter_RegexData Regex = new FileFilter_RegexData();
         [XmlElement]
         public string lastPublishedCommit = null;
-
-        public void StartSaving(ManagedWorkshopPackage package)
-        {
-#warning must re-add!
-            //FileTree.ExcludedFilePaths = package.fileTreeFilter.ExcludedPaths
-            //    .Select(path => Utility.GetRelativePathTo(path, package.ModRootDirectory.FullName))
-            //    .ToHashSet();
-        }
-
-        public void FinishLoading(ManagedWorkshopPackage package)
-        {
-#warning must re-add!
-            //package.fileTreeFilter.ExcludedPaths = FileTree.ExcludedFilePaths
-            //    .Select(path => Path.Combine(path, package.ModRootDirectory.FullName))
-            //    .ToHashSet();
-            //if(!Regex.HasInitializedDefaultValues)
-            //{
-            //    Regex.SetDefaultValues();
-            //}
-        }
     }
 
     public class FileFilter_FileTreeData
     {
         [XmlArray, XmlArrayItem(typeof(string), ElementName = "Path")]
-        public HashSet<string> ExcludedFilePaths { get; set; }
+        public HashSet<string> ExcludedPaths { get; set; }
     }
 
     public class FileFilter_GitIgnoreData

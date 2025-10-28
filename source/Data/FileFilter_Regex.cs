@@ -23,10 +23,18 @@ namespace PublisherPlus.Data
                 .Any(pattern => Regex.IsMatch(file.Name, pattern));
         }
 
-
         public override void Reset()
         {
             package.SerializedData.Regex.UseRegex = true;
+        }
+
+        public override void FinishLoading()
+        {
+            base.FinishLoading();
+            if(!package.SerializedData.Regex.HasInitializedDefaultValues)
+            {
+                package.SerializedData.Regex.SetDefaultValues();
+            }
         }
     }
 }

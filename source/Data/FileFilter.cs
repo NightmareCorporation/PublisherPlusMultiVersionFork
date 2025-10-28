@@ -13,9 +13,9 @@ namespace PublisherPlus.Data
         abstract public string FilterReason { get; }
         abstract public bool AllowsPublishing(FileSystemInfo file);
 
-        virtual public void Reset()
-        {
+        virtual public void Reset() { }
 
-        }
+        virtual public void StartSaving() { }
+        virtual public void FinishLoading() { }
     }
 }
