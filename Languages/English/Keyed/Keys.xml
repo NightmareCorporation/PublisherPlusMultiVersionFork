@@ -36,14 +36,14 @@
   <PublisherPlus.Commits.NoCommitsSelectedPreview>No commits selected</PublisherPlus.Commits.NoCommitsSelectedPreview>
   <PublisherPlus.Commits.OverwriteStartCommit>Overwrite</PublisherPlus.Commits.OverwriteStartCommit>
   <PublisherPlus.Commits.OverwriteStartCommit.Tip>Allows you to define a "starting point" for the commit list manually. The mod tracks the latest commit hash whenever you push to the workshop to fill this value automatically.</PublisherPlus.Commits.OverwriteStartCommit.Tip>
-  <PublisherPlus.Commits.CommitNotInList>Commit hash could not be found in commit list. Clicking Overwrite will do nothing.</PublisherPlus.Commits.CommitNotInList>
+  <PublisherPlus.Commits.CommitNotInList>Commit hash could not be found in commit list.</PublisherPlus.Commits.CommitNotInList>
 
   <PublisherPlus.ChangeLog.Info>Text entered here will be entered into the changelog on the steam workshop after a successful push.</PublisherPlus.ChangeLog.Info>
   
   <PublisherPlus.GitIgnore.UseGitIgnore>Use .gitignore filtering</PublisherPlus.GitIgnore.UseGitIgnore>
   <PublisherPlus.GitIgnore.ParseGitIgnore>Parse .gitignore now</PublisherPlus.GitIgnore.ParseGitIgnore>
   <PublisherPlus.GitIgnore.Info.NoGitIgnoreFound>No .gitignore files found</PublisherPlus.GitIgnore.Info.NoGitIgnoreFound>
-  <PublisherPlus.GitIgnore.Info.GitIgnores>{0} .gitignore file(s)s found:\n\n{1}</PublisherPlus.GitIgnore.Info.GitIgnores>
+  <PublisherPlus.GitIgnore.Info.GitIgnores>{0} .gitignore file(s) found:\n\n{1}</PublisherPlus.GitIgnore.Info.GitIgnores>
   
   <PublisherPlus.Regex.UseRegexFilter>Use regex filtering</PublisherPlus.Regex.UseRegexFilter>
   <PublisherPlus.Regex.OpenRegexWindow>Regex Window</PublisherPlus.Regex.OpenRegexWindow>

@@ -17,28 +17,13 @@ namespace PublisherPlus.Data
         public override string FilterReason => ".gitignore";
         public override bool IsActive => package.SerializedData.GitIgnore.UseGitIgnore;
 
-        private string _gitIgnoreInfoText;
-        public string GitIgnoreInfoText
-        {
-            get
-            {
-                if(_gitIgnoreInfoText == null)
-                {
-                    if(gitIgnoreParsers.NullOrEmpty())
-                    {
-                        _gitIgnoreInfoText = Language.Get("GitIgnore.Info.NoGitIgnoreFound");
-                    }
-                    else
-                    {
-                        string formattedParsers = string.Join("\n", gitIgnoreParsers.Keys.Select(key => key.GetRelativePathTo(package.ModRootDirectory)));
-                        _gitIgnoreInfoText = Language.Get("GitIgnore.Info.GitIgnores", gitIgnoreParsers.Count, formattedParsers);
-                    }
-                }
-                return _gitIgnoreInfoText;
-            }
-        }
+        private string gitIgnoreInfoText;
+        public string GitIgnoreInfoText => gitIgnoreInfoText;
 
-        public FileFilter_GitIgnore(ManagedWorkshopPackage package) : base(package) { }
+        public FileFilter_GitIgnore(ManagedWorkshopPackage package) : base(package)
+        {
+            ParseGitIgnore();
+        }
 
         public override bool AllowsPublishing(FileSystemInfo file)
         {
@@ -69,9 +54,18 @@ namespace PublisherPlus.Data
         {
             const string pattern = ".gitignore";
 
-            gitIgnoreParsers = package.ModRootDirectory.GetFiles(pattern)
+            gitIgnoreParsers = package.ModRootDirectory.GetFiles(pattern, SearchOption.AllDirectories)
                 .ToDictionary(file => file, file => new GitignoreParser(file.FullName, Encoding.UTF8));
-            _gitIgnoreInfoText = null;
+
+            if(gitIgnoreParsers.NullOrEmpty())
+            {
+                gitIgnoreInfoText = Language.Get("GitIgnore.Info.NoGitIgnoreFound");
+            }
+            else
+            {
+                string formattedParsers = string.Join("\n", gitIgnoreParsers.Keys.Select(key => key.GetRelativePathTo(package.ModRootDirectory)));
+                gitIgnoreInfoText = Language.Get("GitIgnore.Info.GitIgnores", gitIgnoreParsers.Count, formattedParsers);
+            }
         }
     }
 }
