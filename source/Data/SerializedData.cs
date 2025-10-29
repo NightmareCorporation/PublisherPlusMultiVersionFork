@@ -33,19 +33,24 @@ namespace PublisherPlus.Data
         [XmlElement]
         public bool UseRegex = true;
         [XmlArray, XmlArrayItem(typeof(string), ElementName = "Pattern")]
-        public List<string> Patterns = new List<string>();
+        public List<string> DirectoryPatterns = new List<string>();
+        [XmlArray, XmlArrayItem(typeof(string), ElementName = "Pattern")]
+        public List<string> FilePatterns = new List<string>();
         [XmlElement]
         public bool HasInitializedDefaultValues = false;
 
         public void SetDefaultValues()
         {
             HasInitializedDefaultValues = true;
-            Patterns = new List<string>()
+            DirectoryPatterns = new List<string>()
+            {
+                "\\.git",
+            };
+            FilePatterns = new List<string>()
             {
                 "\\.gitignore",
                 "_PublisherPlusV2.xml",
                 "_PublisherPlus.xml",
-                "\\.git",
             };
         }
     }

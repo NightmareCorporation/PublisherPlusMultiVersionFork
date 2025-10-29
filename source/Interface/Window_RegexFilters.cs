@@ -1,5 +1,6 @@
 ﻿using PublisherPlus.Data;
 using RimWorld;
+using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
 using Verse;
@@ -19,18 +20,20 @@ namespace PublisherPlus.Interface
             doCloseButton = false;
             doCloseX = true;
             absorbInputAroundWindow = true;
-            closeOnClickedOutside = true;
             draggable = true;
             resizeable = true;
+            closeOnAccept = false;  // prevents closing window on hitting ENTER
 
             Find.WindowStack.Add(this);
         }
 
-        string currentText;
+        string directoryText;
+        string fileText;
 
         private void LoadTextFromSerializedData()
         {
-            currentText = string.Join("\n", package.SerializedData.Regex.Patterns);
+            directoryText = string.Join("\n", package.SerializedData.Regex.DirectoryPatterns);
+            fileText = string.Join("\n", package.SerializedData.Regex.FilePatterns);
         }
 
         public override void DoWindowContents(Rect inRect)
@@ -58,15 +61,33 @@ namespace PublisherPlus.Interface
             }
 
             Rect textRect = divider.Rect;
-            currentText = Widgets.TextArea(textRect, currentText, false);
+            DoPatternInput(textRect.LeftHalf(), Language.Get("Regex.Folders"), ref directoryText);
+            DoPatternInput(textRect.RightHalf(), Language.Get("Regex.Files"), ref fileText);
+        }
+
+        private void DoPatternInput(Rect inRect, string title, ref string text)
+        {
+            Rect titleRect = inRect.TopPartPixels(Text.LineHeight);
+            Rect textRect = inRect.BottomPartPixels(inRect.height - titleRect.height);
+            TextAnchor anchor = Text.Anchor;
+            Text.Anchor = TextAnchor.MiddleCenter;
+            Widgets.Label(titleRect, title);
+            text = Widgets.TextArea(textRect, text, readOnly: false);
+            Text.Anchor = anchor;
         }
 
         private void SavePatterns()
         {
-            package.SerializedData.Regex.Patterns = currentText
-                .Split("\n")
-                .Except("")
-                .ToList();
+            package.SerializedData.Regex.FilePatterns = ProcessPatterns(fileText);
+            package.SerializedData.Regex.DirectoryPatterns = ProcessPatterns(directoryText);
+
+            List<string> ProcessPatterns(string input)
+            {
+                return input
+                    .Split("\n")
+                    .Except("")
+                    .ToList();
+            }
         }
     }
 }

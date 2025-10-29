@@ -50,6 +50,8 @@
   <PublisherPlus.Regex.Title>Regex Patterns</PublisherPlus.Regex.Title>
   <PublisherPlus.Regex.Save>Save patterns</PublisherPlus.Regex.Save>
   <PublisherPlus.Regex.LoadDefaults>Load default patterns</PublisherPlus.Regex.LoadDefaults>
+  <PublisherPlus.Regex.Folders>Folders</PublisherPlus.Regex.Folders>
+  <PublisherPlus.Regex.Files>Files</PublisherPlus.Regex.Files>
   
   <PublisherPlus.Expand>Click to expand</PublisherPlus.Expand>
   <PublisherPlus.Collapse>Click to collapse</PublisherPlus.Collapse>
