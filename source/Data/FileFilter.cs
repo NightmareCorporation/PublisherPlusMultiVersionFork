@@ -10,7 +10,7 @@ namespace PublisherPlus.Data
             this.package = package;
         }
         virtual public bool IsActive { get; }
-        abstract public string FilterReason { get; }
+        abstract public string FilterReasonKey { get; }
         abstract public bool AllowsPublishing(FileSystemInfo file);
 
         virtual public void Reset() { }

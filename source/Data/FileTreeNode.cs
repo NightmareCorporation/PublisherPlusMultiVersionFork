@@ -97,7 +97,7 @@ namespace PublisherPlus.Data
 
         public void CollapseAllFilteredNodes()
         {
-            if(!package.AllowsPublishing(entryInfo, out _))
+            if(!package.AllowsPublishing(entryInfo, out string reason))
             {
                 isExpanded = false;
             }
@@ -181,13 +181,23 @@ namespace PublisherPlus.Data
             void DoIncludedToggle()
             {
                 Rect rect = divider.NewCol(Text.LineHeight, HorizontalJustification.Left);
-                bool isIncludedByTreeFilter = package.fileTreeFilter.AllowsPublishing(this);
+
+                bool isAllowed = package.AllowsPublishing(entryInfo, out List<FileFilter> denyingFilters);
+                // first check if filetree is filtering (and remove it from the list), then check if the list has any entries, which means the user has no agency to include the files
+                bool isIncludedByTreeFilter = denyingFilters.RemoveAll(filter => filter is FileFilter_FileTree) == 0;
+                bool isExcludedByAnyOtherFilter = denyingFilters.Any();
+
                 string text = null;
                 Texture2D texture = null;
                 if(package.fileTreeFilter.IsPartial(this))
                 {
                     text = Language.Get("Partial");
                     texture = Widgets.CheckboxPartialTex;
+                }
+                else if(isExcludedByAnyOtherFilter)
+                {
+                    text = Language.Get("Excluded");
+                    texture = Widgets.CheckboxOffTex;
                 }
                 else if(isIncludedByTreeFilter)
                 {
@@ -199,10 +209,22 @@ namespace PublisherPlus.Data
                     text = Language.Get("Excluded");
                     texture = Widgets.CheckboxOffTex;
                 }
-                if(Widgets.ButtonImage(rect, texture, tooltip: text))
+
+                if(isExcludedByAnyOtherFilter)
                 {
-                    package.fileTreeFilter.ToggleState(this);
-                    SoundDefOf.Click.PlayOneShotOnCamera();
+                    Color color = GUI.color;
+                    GUI.color = Color.gray;
+                    Widgets.DrawTextureFitted(rect, texture, 1);
+                    TooltipHandler.TipRegion(rect, text);
+                    GUI.color = color;
+                }
+                else if(Widgets.ButtonImage(rect, texture, tooltip: text))
+                {
+                    if(!isExcludedByAnyOtherFilter)
+                    {
+                        package.fileTreeFilter.ToggleState(this);
+                        SoundDefOf.Click.PlayOneShotOnCamera();
+                    }
                 }
             }
 

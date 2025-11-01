@@ -10,7 +10,7 @@ namespace PublisherPlus.Data
     {
         public FileFilter_Regex(ManagedWorkshopPackage package) : base(package) { }
 
-        public override string FilterReason => "Regex";
+        public override string FilterReasonKey => "FilterReason.Pattern";
         public override bool IsActive => package.SerializedData.Regex.UseRegex;
 
         public override bool AllowsPublishing(FileSystemInfo file)

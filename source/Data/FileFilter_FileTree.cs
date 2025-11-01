@@ -16,7 +16,7 @@ namespace PublisherPlus.Data
     public class FileFilter_FileTree : FileFilter
     {
         public FileFilter_FileTree(ManagedWorkshopPackage package) : base(package) { }
-        public override string FilterReason => "FileTreeExclusion";
+        public override string FilterReasonKey => "FilterReason.FileTreeExclusion";
         public override bool IsActive => true;
 
         /// <remarks>

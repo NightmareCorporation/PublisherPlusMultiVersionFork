@@ -1,7 +1,6 @@
 ﻿using PublisherPlus.Patch;
 using PublisherPlus.Settings;
 using Steamworks;
-using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -131,24 +130,36 @@ namespace PublisherPlus.Data
             };
         }
 
+        /// <param name="denyingFilters">All filters that prevent publishing the file</param>
+        public bool AllowsPublishing(FileSystemInfo item, out List<FileFilter> denyingFilters)
+        {
+            denyingFilters = filters
+                .Where(filter =>
+                    filter.IsActive &&
+                    !filter.AllowsPublishing(item))
+                .ToList();
+            return denyingFilters.NullOrEmpty();
+        }
+
+        public bool AllowsPublishing(FileSystemInfo item)
+        {
+            return AllowsPublishing(item, out List<FileFilter> _);
+        }
+
         public bool AllowsPublishing(FileSystemInfo item, out string reason)
         {
-            List<string> reasons = new List<string>();
-            bool isPublishingAllowed = true;
-            foreach(FileFilter filter in filters)
+            bool isAllowed = AllowsPublishing(item, out List<FileFilter> denyingFilters);
+
+            if(denyingFilters.Any())
             {
-                if(!filter.IsActive)
-                {
-                    continue;
-                }
-                if(!filter.AllowsPublishing(item))
-                {
-                    isPublishingAllowed = false;
-                    reasons.Add(filter.FilterReason);
-                }
+                reason = string.Join(", ", denyingFilters.Select(filter => Language.Get(filter.FilterReasonKey)));
             }
-            reason = reasons.Any() ? String.Join(", ", reasons) : null;
-            return isPublishingAllowed;
+            else
+            {
+                reason = null;
+            }
+
+            return isAllowed;
         }
 
         /// <summary>

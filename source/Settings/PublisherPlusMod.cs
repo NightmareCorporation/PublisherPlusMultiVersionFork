@@ -76,11 +76,16 @@ namespace PublisherPlus.Settings
 
     public class PublisherPlusSettings : ModSettings
     {
-        public static bool UseRelativePathToParentForFileTree = true;
-        public static bool ShowFileSizeInFileTree = true;
-        public static bool IndentButtonsWithTree = true;
-        public static bool EmulateGitNotInstalled = false;
-        public static string TempFolderPath = GenFilePaths.TempFolderPath;
+        static bool defaultUseRelativePathToParentForFileTree = true;
+        public static bool UseRelativePathToParentForFileTree = defaultUseRelativePathToParentForFileTree;
+        static bool defaultShowFileSizeInFileTree = true;
+        public static bool ShowFileSizeInFileTree = defaultShowFileSizeInFileTree;
+        static bool defaultIndentButtonsWithTree = true;
+        public static bool IndentButtonsWithTree = defaultIndentButtonsWithTree;
+        static bool defaultEmulateGitNotInstalled = false;
+        public static bool EmulateGitNotInstalled = defaultEmulateGitNotInstalled;
+        static string defaultTempFolderPath = GenFilePaths.TempFolderPath;
+        public static string TempFolderPath = defaultTempFolderPath;
         const string defaultGitLogCommand = @"log --max-count 20 --pretty=format:%H%n%cI%n%s%n%b---";
         public static string GitLogCommand = defaultGitLogCommand;
 
@@ -92,12 +97,12 @@ namespace PublisherPlus.Settings
         public override void ExposeData()
         {
             base.ExposeData();
-            Scribe_Values.Look(ref UseRelativePathToParentForFileTree, nameof(UseRelativePathToParentForFileTree));
-            Scribe_Values.Look(ref ShowFileSizeInFileTree, nameof(ShowFileSizeInFileTree));
-            Scribe_Values.Look(ref IndentButtonsWithTree, nameof(IndentButtonsWithTree));
-            Scribe_Values.Look(ref EmulateGitNotInstalled, nameof(EmulateGitNotInstalled));
-            Scribe_Values.Look(ref TempFolderPath, nameof(TempFolderPath));
-            Scribe_Values.Look(ref GitLogCommand, nameof(GitLogCommand));
+            Scribe_Values.Look(ref UseRelativePathToParentForFileTree, nameof(UseRelativePathToParentForFileTree), defaultUseRelativePathToParentForFileTree);
+            Scribe_Values.Look(ref ShowFileSizeInFileTree, nameof(ShowFileSizeInFileTree), defaultShowFileSizeInFileTree);
+            Scribe_Values.Look(ref IndentButtonsWithTree, nameof(IndentButtonsWithTree), defaultIndentButtonsWithTree);
+            Scribe_Values.Look(ref EmulateGitNotInstalled, nameof(EmulateGitNotInstalled), defaultEmulateGitNotInstalled);
+            Scribe_Values.Look(ref TempFolderPath, nameof(TempFolderPath), defaultTempFolderPath);
+            Scribe_Values.Look(ref GitLogCommand, nameof(GitLogCommand), defaultGitLogCommand);
         }
     }
 }

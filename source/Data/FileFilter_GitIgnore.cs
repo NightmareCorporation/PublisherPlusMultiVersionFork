@@ -14,7 +14,7 @@ namespace PublisherPlus.Data
         /// </summary>
         private Dictionary<FileInfo, GitignoreParser> gitIgnoreParsers;
 
-        public override string FilterReason => ".gitignore";
+        public override string FilterReasonKey => "FilterReason.Gitignore";
         public override bool IsActive => package.SerializedData.GitIgnore.UseGitIgnore;
 
         private string gitIgnoreInfoText;

@@ -52,6 +52,10 @@
   <PublisherPlus.Regex.LoadDefaults>Load default patterns</PublisherPlus.Regex.LoadDefaults>
   <PublisherPlus.Regex.Folders>Folders</PublisherPlus.Regex.Folders>
   <PublisherPlus.Regex.Files>Files</PublisherPlus.Regex.Files>
+
+  <PublisherPlus.FilterReason.FileTreeExclusion>Excluded from file tree</PublisherPlus.FilterReason.FileTreeExclusion>
+  <PublisherPlus.FilterReason.Gitignore>.gitignore</PublisherPlus.FilterReason.Gitignore>
+  <PublisherPlus.FilterReason.Pattern>Regex pattern</PublisherPlus.FilterReason.Pattern>
   
   <PublisherPlus.Expand>Click to expand</PublisherPlus.Expand>
   <PublisherPlus.Collapse>Click to collapse</PublisherPlus.Collapse>
