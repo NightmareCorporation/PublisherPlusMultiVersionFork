@@ -106,8 +106,9 @@ namespace PublisherPlus.Data
 
             InitiateFileTree();
             SetFilters();
-
             LoadFromConfigFile();
+
+            fileTree.Root.CollapseAllFilteredNodes();
         }
 
         private void InitiateFileTree()

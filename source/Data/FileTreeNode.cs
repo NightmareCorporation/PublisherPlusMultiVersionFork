@@ -94,6 +94,22 @@ namespace PublisherPlus.Data
             }
         }
 
+
+        public void CollapseAllFilteredNodes()
+        {
+            if(!package.AllowsPublishing(entryInfo, out _))
+            {
+                isExpanded = false;
+            }
+            else
+            {
+                foreach(FileTreeNode child in children)
+                {
+                    child.CollapseAllFilteredNodes();
+                }
+            }
+        }
+
         const float indentSizePerDepth = 8f;
         public void TryDraw(Listing_Standard list)
         {
