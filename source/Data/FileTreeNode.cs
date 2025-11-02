@@ -1,4 +1,5 @@
-﻿using PublisherPlus.Settings;
+﻿using PublisherPlus.Interface;
+using PublisherPlus.Settings;
 using RimWorld;
 using System.Collections.Generic;
 using System.IO;
@@ -113,9 +114,18 @@ namespace PublisherPlus.Data
         const float indentSizePerDepth = 8f;
         public void TryDraw(Listing_Standard list)
         {
+            if(Page_Contents.drawEntriesRange.Includes(Page_Contents.currentEntryID++))
+            {
+                foreach(FileTreeNode item in children)
+                {
+                    item.TryDraw(list);
+                }
+                return;
+            }
+
             RectDivider divider;
             Rect rowRect = list.GetRect(Text.LineHeight);
-            divider = new RectDivider(rowRect, typeof(FileFilter_FileTree).GetHashCode());
+            divider = new RectDivider(rowRect, typeof(FileTreeNode).GetHashCode());
 
             if(PublisherPlusSettings.IndentButtonsWithTree)
             {

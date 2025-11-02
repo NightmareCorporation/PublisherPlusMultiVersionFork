@@ -211,5 +211,10 @@ namespace PublisherPlus
             process.WaitForExit(maxWaitMs);
             return output;
         }
+
+        public static bool Includes(this IntRange range, int value)
+        {
+            return range.min <= value && range.max >= value;
+        }
     }
 }

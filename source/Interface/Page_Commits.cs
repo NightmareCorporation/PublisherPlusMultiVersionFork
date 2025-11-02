@@ -126,7 +126,6 @@ namespace PublisherPlus.Interface
             string projectPath = (gitPath as DirectoryInfo).Parent.FullName;
             string command = PublisherPlusSettings.GitLogCommand;
             string logResult = Utility.RunGitCommand(command, workingDirectory: projectPath);
-            Log.Message($"git log command\n{command}\nat dir\n{projectPath}\nproduces result:\n{logResult}");
             commitCollection = new CommitCollection(logResult);
             package.CurrentCommitHash = commitCollection.FirstOrDefault()?.ShortHash;
             startCommit = package.SerializedData.lastPublishedCommit;

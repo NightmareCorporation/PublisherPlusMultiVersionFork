@@ -39,21 +39,28 @@ namespace PublisherPlus.Interface
             list.End();
         }
 
-
+        public static IntRange drawEntriesRange = new IntRange(0, 9999);
+        public static int currentEntryID = 0;
+        public static int maxEntries = 9999;
         private void DoFileList(Rect inRect)
         {
+            currentEntryID = 0;
             Listing_Standard list = new Listing_Standard();
 
-            float entryHeight = Text.LineHeight + list.verticalSpacing;
-            int listingCount = 9999;
+            float entryHeight = Text.LineHeight;
             const float sliderWidth = 20f;
-            Rect scrollRect = new Rect(0f, 0f, inRect.width - sliderWidth, listingCount * entryHeight);
+            Rect scrollRect = new Rect(0f, 0f, inRect.width - sliderWidth, maxEntries * entryHeight);
 
             Widgets.BeginScrollView(inRect, ref scrollPos, scrollRect);
             list.Begin(scrollRect);
 
+            drawEntriesRange.min = Mathf.FloorToInt(scrollPos.y / entryHeight);
+            drawEntriesRange.max = Mathf.CeilToInt(drawEntriesRange.min + inRect.height / entryHeight);
+            string log = $"range: {drawEntriesRange}, max: {maxEntries}";
+            Log.ErrorOnce(log, log.GetHashCode());
             package.fileTree.Root.TryDraw(list);
 
+            maxEntries = currentEntryID;
             list.End();
             Widgets.EndScrollView();
         }

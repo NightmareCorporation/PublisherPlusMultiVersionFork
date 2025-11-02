@@ -33,7 +33,6 @@ namespace PublisherPlus.Data.CommitList
 
         public CommitEntry(string gitLogEntry)
         {
-            Log.Message($"parsing git log: {gitLogEntry}");
             Queue<string> lines = new Queue<string>(gitLogEntry.Split('\n'));
             this.hash = lines.Dequeue();
             this.date = DateTime.Parse(lines.Dequeue(), null, DateTimeStyles.RoundtripKind); // DateTimeStyles.RoundtripKind == ISO 8601 - which is what %cI in the git log format produces
