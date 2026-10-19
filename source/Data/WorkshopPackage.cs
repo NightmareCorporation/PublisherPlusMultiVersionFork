@@ -58,16 +58,16 @@ namespace PublisherPlus.Data
             _id = _hook.PublishedFileId;
 
             CopyHook();
-            GetConfig();
-
-            _uploadDirectory = TempDirectory.CreateSubdirectory(SourceDirectory.Name);
-            if(_uploadDirectory.ExistsNow()) { _uploadDirectory.Delete(true); }
-            _uploadDirectory.Create();
 
             // this creates the packed assets so the file viewer can present them
             LongEventHandler.QueueLongEvent(() => Access.Method_Verse_Steam_Workshop_BakeAndUpload_Call(_metaData), "Creation", true, (Exception e) => Log.Error(e.ToString()), callback: () =>
             {
                 GetAllContent();
+                GetConfig();
+
+                _uploadDirectory = TempDirectory.CreateSubdirectory(SourceDirectory.Name);
+                if(_uploadDirectory.ExistsNow()) { _uploadDirectory.Delete(true); }
+                _uploadDirectory.Create();
             });
         }
 
