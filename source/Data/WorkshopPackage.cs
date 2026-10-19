@@ -233,6 +233,12 @@ namespace PublisherPlus.Data
 
         public void SetPublishedFileId(PublishedFileId_t pfid)
         {
+            if(_id != pfid)
+            {
+                string publishedFileMirrorPath = Path.Combine(TempDirectory.FullName, PublishedFileIdFilePath);
+                File.WriteAllText(publishedFileMirrorPath, pfid.ToString());
+            }
+
             _id = pfid;
 
             FileInfo file = new FileInfo(Path.Combine(SourceDirectory.FullName, PublishedFileIdFilePath));
