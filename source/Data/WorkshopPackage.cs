@@ -49,7 +49,7 @@ namespace PublisherPlus.Data
         public DirectoryInfo SourceDirectory { get; private set; }
         public IEnumerable<FileSystemInfo> AllContent => _items.OrderByDescending(item => item.Value).Select(item => item.Key);
 
-        private readonly DirectoryInfo _uploadDirectory;
+        private DirectoryInfo _uploadDirectory;
 
         public WorkshopPackage(ModMetaData metaData)
         {
@@ -58,13 +58,17 @@ namespace PublisherPlus.Data
             _id = _hook.PublishedFileId;
 
             CopyHook();
-
-            GetAllContent();
             GetConfig();
 
             _uploadDirectory = TempDirectory.CreateSubdirectory(SourceDirectory.Name);
             if(_uploadDirectory.ExistsNow()) { _uploadDirectory.Delete(true); }
             _uploadDirectory.Create();
+
+            // this creates the packed assets so the file viewer can present them
+            LongEventHandler.QueueLongEvent(() => Access.Method_Verse_Steam_Workshop_BakeAndUpload_Call(_metaData), "Creation", true, (Exception e) => Log.Error(e.ToString()), callback: () =>
+            {
+                GetAllContent();
+            });
         }
 
         private void CopyHook()
@@ -210,8 +214,7 @@ namespace PublisherPlus.Data
             _current = this;
 
             Prepare();
-
-            Access.Method_Verse_Steam_Workshop_Upload_Call(_metaData);
+            Access.Method_Verse_Steam_Workshop_Upload_Call(this);
         }
 
         public static void OnUploaded()
@@ -221,6 +224,16 @@ namespace PublisherPlus.Data
             Mod.Log($"Finished uploading '{_current.Title}'");
 
             _current = null;
+            RemoveTempDirectory();
+        }
+
+        private static void RemoveTempDirectory()
+        {
+            // prevents git readonly files from blocking the deletion process
+            foreach(FileInfo file in TempDirectory.GetFiles("*.*", SearchOption.AllDirectories))
+            {
+                File.SetAttributes(file.FullName, FileAttributes.Normal);
+            }
             TempDirectory.Delete(true);
         }
 
@@ -233,20 +246,20 @@ namespace PublisherPlus.Data
 
         public void SetPublishedFileId(PublishedFileId_t pfid)
         {
-            if(_id != pfid)
+            FileInfo sourceFile = new FileInfo(Path.Combine(SourceDirectory.FullName, PublishedFileIdFilePath));
+            _id = pfid;
+            _hook.PublishedFileId = pfid;
+            if(!_items.ContainsKey(sourceFile))
             {
-                string publishedFileMirrorPath = Path.Combine(TempDirectory.FullName, PublishedFileIdFilePath);
-                File.WriteAllText(publishedFileMirrorPath, pfid.ToString());
+                _items.Add(sourceFile, true);
             }
 
-            _id = pfid;
-
-            FileInfo file = new FileInfo(Path.Combine(SourceDirectory.FullName, PublishedFileIdFilePath));
-            _hook.PublishedFileId = pfid;
-
-            if(_items.Keys.FirstOrDefault(item => item.FullName == file.FullName) != null) { return; }
-
-            _items.Add(file, true);
+            FileInfo tempFile = new FileInfo(Path.Combine(_uploadDirectory.FullName, PublishedFileIdFilePath));
+            if(!tempFile.Exists)
+            {
+                Log.Message($"Creating PublishedFileId.txt in mirror for fresh upload");
+                File.WriteAllText(tempFile.FullName, pfid.ToString());
+            }
         }
 
         public string GetWorkshopName() => Title;
